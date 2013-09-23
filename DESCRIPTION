@@ -1,0 +1,30 @@
+Package: nscancor
+Authors@R: c( person("Christian", "Sigg", email =
+    "christian@sigg-iten.ch", role = c("aut", "cre")), person("R
+    Core team", role = "aut"))
+Version: 0.2
+Date: 2013-09-20
+Title: Non-Negative Sparse CCA
+Description: This package implements an algorithm for canonical correlation
+    analysis (CCA) that is based on iterated regression
+    steps. By choosing the appropriate regression algorithm for each data
+    modality, it is possible to enforce sparsity, non-negativity or other kinds
+    of constraints on the projection vectors. Multiple components are computed
+    sequentially using a generalized deflation scheme, where the additional
+    correlation not explained by previous components is maximized for each
+    component. 'nscancor' has the same interface as the 'cancor' function from
+    the 'stats' package (plus some extra parameters).
+URL: http://sigg-iten.ch/research/
+License: GPL (>=2)
+Suggests:
+    CCA,
+    glmnet,
+    MASS,
+    testthat,
+    roxygen2
+Collate:
+    'nscancor-package.R'
+    'nscancor.R'
+    'cardinality.R'
+    'normv.R'
+    'acor.R'
