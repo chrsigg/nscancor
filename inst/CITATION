@@ -1,0 +1,10 @@
+bibentry("InProceedings",
+    key = "sigg2007nonnegcca",
+    author = "Christian Sigg and Bernd Fischer and Bjoern Ommer and
+      Volker Roth and Joachim M. Buhmann",
+    title = "Nonnegative CCA for Audiovisual Source Separation",
+    booktitle = "Proc. IEEE Workshop on Machine Learning for Signal Processing",
+    year = "2007",
+
+    mheader = "If you find this package useful, please cite:"
+)

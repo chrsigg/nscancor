@@ -1,10 +1,10 @@
 \name{nscancor}
 \alias{nscancor}
-\title{Non-Negative Sparse CCA}
+\title{Non-Negative and Sparse CCA}
 \usage{
   nscancor(x, y, xcenter = TRUE, ycenter = TRUE,
     xscale = FALSE, yscale = FALSE,
-    ncomp = min(dim(x), dim(y)), xpredict, ypredict,
+    npairs = min(dim(x), dim(y)), xpredict, ypredict,
     cor_tol = NULL, nrestart = 10, iter_tol = 0.001,
     iter_max = 30, verbosity = 0)
 }
@@ -16,51 +16,51 @@
   the second domain}
 
   \item{xcenter}{a logical value indicating whether the
-  empirical mean of \code{X} should be subtracted.
-  Alternatively, a vector of length equal the number of
-  columns of \code{X} can be supplied.  The value is passed
-  to \code{\link{scale}}.}
+  empirical mean of (each column of) \code{x} should be
+  subtracted. Alternatively, a vector of length equal the
+  number of columns of \code{x} can be supplied. The value
+  is passed to \code{\link{scale}}.}
 
-  \item{ycenter}{see \code{xcenter}}
+  \item{ycenter}{analogous to \code{xcenter}}
 
   \item{xscale}{a logical value indicating whether the
-  columns of \code{X} should be scaled to have unit
+  columns of \code{x} should be scaled to have unit
   variance before the analysis takes place. The default is
   \code{FALSE} for consistency with \code{cancor}.
   Alternatively, a vector of length equal the number of
-  columns of \code{X} can be supplied.  The value is passed
+  columns of \code{x} can be supplied.  The value is passed
   to \code{\link{scale}}.}
 
-  \item{yscale}{see \code{xscale}}
+  \item{yscale}{analogous to \code{xscale}}
 
-  \item{ncomp}{the number of canonical components to be
-  computed. With the default setting, components are
-  computed until either \code{x} or \code{y} is fully
-  deflated.}
+  \item{npairs}{the number of pairs of canonical variables
+  to be computed. With the default setting, pairs of
+  variables are computed until either \code{x} or \code{y}
+  is fully deflated.}
 
   \item{xpredict}{the regression function to predict the
-  canonical variable of \code{x} given \code{y}. The formal
-  arguments of the function are the design matrix \code{y},
-  the current canonical variable of \code{x} as the target
-  and the current component \code{cc}, e.g. for specifying
-  different constraints for each component.}
+  canonical variable for \code{x}, given \code{y}. The
+  formal arguments are the design matrix \code{y}, the
+  regression target \code{xv} as the current canonical
+  variable for \code{x}, and \code{pp} as a counter of the
+  current pair of canonical variables (e.g. for enforcing
+  different constraints for different canonical vectors).
+  See the examples for an illustration.}
 
-  \item{ypredict}{see \code{xpredict}}
+  \item{ypredict}{analogous to \code{xpredict}}
 
   \item{cor_tol}{a threshold indicating the magnitude below
-  which components should be omitted. Components are
-  omitted if their explained correlations are less than or
-  equal to \code{cor_tol} times the correlation of the
-  first component.  With the default \code{NULL} setting,
-  no components are omitted.  With \code{cor_tol = 0} or
-  \code{cor_tol = sqrt(.Machine$double.eps)}, essentially
-  constant components are omitted.}
+  which canonical variables should be omitted. Variables
+  are omitted if their explained correlations are less than
+  or equal to \code{cor_tol} times the correlation of the
+  first pair of canonical variables. With the default
+  \code{NULL} setting, no variables are omitted.}
 
   \item{nrestart}{the number of random restarts for
-  computing the projection pairs via iterated regression.
-  The solution achieving maximum explained correlation over
-  all random restarts is kept. A value greater than one can
-  help to avoid bad local maxima.}
+  computing the canonical variables via iterated regression
+  steps. The solution achieving maximum explained
+  correlation over all random restarts is kept. A value
+  greater than one can help to avoid poor local maxima.}
 
   \item{iter_tol}{If the relative change of the objective
   is less than \code{iter_tol} between iterations, the
@@ -77,53 +77,57 @@
   is to be quiet.}
 }
 \value{
-  \code{nscancor} returns a list containing the following
+  \code{nscancor} returns a list with the following
   elements: \item{cor}{the additional correlation explained
-  by each component, see \code{\link{acor}}.}
-  \item{xcoef}{the matrix containing the projection vectors
-  related to \code{x} as its columns} \item{ycoef}{the
-  matrix containing the projection vectors related to
-  \code{y} as its columns} \item{xcenter}{if \code{xcenter}
-  is \code{TRUE} the centering vector, else the zero vector
-  } \item{xscale}{if \code{xscale} is \code{TRUE} the
-  scaling vector, else FALSE } \item{ycenter}{see
-  \code{xcenter}} \item{yscale}{see \code{xscale}}
+  by each pair of canonical variables, see
+  \code{\link{acor}}.} \item{xcoef}{the matrix containing
+  the canonical vectors related to \code{x} as its columns}
+  \item{ycoef}{analogous to \code{xcoef}} \item{xcenter}{if
+  \code{xcenter} is \code{TRUE} the centering vector, else
+  the zero vector (in accordance with \code{cancor})}
+  \item{ycenter}{analogous to \code{xcenter}}
+  \item{xscale}{if \code{xscale} is \code{TRUE} the scaling
+  vector, else FALSE } \item{yscale}{analogous to
+  \code{xscale}}
 }
 \description{
-  Performs a constrained canonical correlation analysis,
-  where non-negativity, sparsity or other constraints are
-  enforced on the projection vectors. The result of the
+  Performs a canonical correlation analysis(CCA) where
+  constraints such as non-negativity or sparsity are
+  enforced on the canonical vectors. The result of the
   analysis is returned as a list with the same elements as
   the list returned by \code{cancor}.
 }
 \details{
-  \code{nscancor} computes the projection vectors using
-  iterated regression steps, where the constraints suitable
-  for each domain are enforced by choosing the appropriate
-  regression method. See Sigg et al. (2007) for an early
-  application of the principle (not yet including
-  generalized deflation).
+  \code{nscancor} computes the canonical vectors (called
+  \code{xcoef} and \code{ycoef}) using iterated regression
+  steps, where the constraints suitable for each domain are
+  enforced by choosing the appropriate regression method.
+  See Sigg et al. (2007) for an early application of the
+  principle (not yet including generalized deflation).
 
-  Because constrained projection vectors no longer
+  Because constrained canonical vectors no longer
   correspond to true eigenvectors of the cross-covariance
-  matrix and are usually not pairwise conjugate, special
+  matrix and are usually not pairwise conjugate (i.e. the
+  canonical variables are not uncorrelated), special
   attention needs to be paid when computing more than a
-  single component. The algorithm implements a generalized
-  deflation (GD) scheme which builds on GD for PCA as
-  proposed by Mackey (2009). Given a basis of the space
-  spanned by the canonical variables, the correlation of
-  the component is maximized after projecting the current
-  projection vector to the ortho-complement space of the
-  basis. This procedure maximizes the additional
-  correlation not explained by previous components, and is
-  identical to standard CCA if no additional constraints
-  are enforced.
+  single pair of canonical vectors. \code{nscancor}
+  implements a generalized deflation (GD) scheme which
+  builds on GD for PCA as proposed by Mackey (2009). For
+  each domain, a basis of the space spanned by the previous
+  canonical variables is computed. Then, the correlation of
+  the current pair of canonical variables is maximized
+  after projecting each current canonical vector to the
+  ortho-complement space of its respective basis. This
+  procedure maximizes the additional correlation not
+  explained by previous canonical variables, and is
+  identical to standard CCA if the canonical vectors are
+  the eigenvectors of the cross-covariance matrix.
 
   See the references for further details.
 }
 \note{
   Deflating the data matrices accumulates numerical errors
-  over successive components.
+  over successive canonical vectors.
 }
 \examples{
 library(MASS)
@@ -132,31 +136,32 @@ data(nutrimouse, package="CCA")
 
 set.seed(1)
 
-### Unconstrained CCA, identical to cancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid)
+### Unconstrained CCA, produces identical results to calling 
+# cancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid)
 
-ypredict = function(X, y, cc) {
-  return(ginv(X)\%*\%y)
+ypredict = function(X, yv, vv) {
+  return(ginv(X)\%*\%yv)
 }
-xpredict = function(Y, x, cc) {
-  return(ginv(Y)\%*\%x)
+xpredict = function(Y, xv, vv) {
+  return(ginv(Y)\%*\%xv)
 } 
 nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
-         ypredict=ypredict)$cor
+         ypredict=ypredict)
 
 
-### Non-negative sparse CCA using glmnet
+### Non-negative sparse CCA using glmnet() as the regression function
 
-ypredict <- function(X, y, cc) {
-    en <- glmnet(X, y, alpha=0.5, intercept=FALSE, dfmax=5, lower.limits=0)
+ypredict <- function(X, yv, vv) {
+    en <- glmnet(X, yv, alpha=0.5, intercept=FALSE, dfmax=5, lower.limits=0)
     W <- coef(en)
     return(W[2:nrow(W), ncol(W)])
 }
-xpredict <- function(Y, x, cc) {
-    en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
+xpredict <- function(Y, xv, vv) {
+    en <- glmnet(Y, xv, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
     V <- coef(en)
     return(V[2:nrow(V), ncol(V)])
 }
-nscancor(nutrimouse$gene, nutrimouse$lipid, xpredict=xpredict, ncomp=5,
+nscancor(nutrimouse$gene, nutrimouse$lipid, xpredict=xpredict, npairs=5,
          ypredict=ypredict, verbosity=2)
 }
 \references{

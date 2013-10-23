@@ -57,7 +57,7 @@ test_that("rank of matrix smaller than ncomp", {
     xpredict = function(Y, x, cc) {
       return(ginv(Y)%*%x)
     } 
-    nscc <- nscancor(X, X, xpredict=xpredict, ypredict=xpredict, ncomp = 2)
+    nscc <- nscancor(X, X, xpredict=xpredict, ypredict=xpredict, npairs = 2)
     expect_true(length(nscc$cor) == 1)
 })
 

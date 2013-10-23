@@ -4,7 +4,7 @@ Authors@R: c( person("Christian", "Sigg", email =
     Core team", role = "aut"))
 Version: 0.2
 Date: 2013-09-20
-Title: Non-Negative Sparse CCA
+Title: Non-Negative and Sparse CCA
 Description: This package implements an algorithm for canonical correlation
     analysis (CCA) that is based on iterated regression
     steps. By choosing the appropriate regression algorithm for each data
