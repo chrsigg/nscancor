@@ -4,8 +4,8 @@ nscancor
 An R package for non-negative and sparse canonical correlation
 analysis (CCA).
 
-CCA is a method for finding associations between two paired data sets.
-For example, a health study might record gene expression levels and a
+CCA is a method for finding associations between paired data sets.
+For example, a health study might record the gene expression levels and a
 number of physiological parameters for a patient cohort. If one
 conjectures that the cause for the physiological symptoms has a
 genetic component, one could expect to find a correlation between the
@@ -48,5 +48,10 @@ available, e.g. ridge regression or the elastic net. By using two
 different regression functions, the proper constraints can be enforced
 for each domain.
 
-Robust regression
+The package also provides a generalization of constrained CCA for
+analyzing more than two data sets. The `mcancor` algorithm is
+structurally analogous to `nscancor`, but it maximizes the sum of all
+pairwise correlations of canonical variables. As with `nscancor`,
+specifying the regression function for each domain makes it possible
+to enforce appropriate constraints on each canonical vector.
 

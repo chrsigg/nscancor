@@ -14,7 +14,7 @@ Description: This package implements two algorithms for canonical correlation
     additional correlation not explained by previous variables is maximized.
     'nscancor' is used to analyze paired data from two domains, and has the same
     interface as the 'cancor' function from the 'stats' package (plus some extra
-    parameters). 'mcancor' is apropriate for analyzing data from three or more
+    parameters). 'mcancor' is appropriate for analyzing data from three or more
     domains.
 URL: http://sigg-iten.ch/research/
 License: GPL (>=2)
