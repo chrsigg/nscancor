@@ -7,27 +7,27 @@ set.seed(1)
 ### Unconstrained CCA, produces identical results to calling 
 # cancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid)
 
-ypredict <- function(X, yv, pp) {
-  return(ginv(X)%*%yv)
+ypredict <- function(x, yv, vv) {
+  return(ginv(x)%*%yv)
 }
-xpredict <- function(Y, xv, pp) {
-  return(ginv(Y)%*%xv)
+xpredict <- function(y, xv, vv) {
+  return(ginv(y)%*%xv)
 } 
-nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
+cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
          ypredict=ypredict)
 
 
 ### Non-negative sparse CCA using glmnet() as the regression function
 
-ypredict <- function(X, yv, pp) {
-    en <- glmnet(X, yv, alpha=0.5, intercept=FALSE, dfmax=5, lower.limits=0)
+ypredict <- function(x, yv, vv) {
+    en <- glmnet(x, yv, alpha=0.5, intercept=FALSE, dfmax=5, lower.limits=0)
     W <- coef(en)
     return(W[2:nrow(W), ncol(W)])
 }
-xpredict <- function(Y, xv, pp) {
-    en <- glmnet(Y, xv, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
+xpredict <- function(y, xv, vv) {
+    en <- glmnet(y, xv, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
     V <- coef(en)
     return(V[2:nrow(V), ncol(V)])
 }
-nscancor(nutrimouse$gene, nutrimouse$lipid, xpredict=xpredict, npairs=5,
-         ypredict=ypredict, verbosity=2)
+nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, xpredict=xpredict, nvar=5,
+         ypredict=ypredict)

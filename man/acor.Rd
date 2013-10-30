@@ -2,55 +2,55 @@
 \alias{acor}
 \title{Additional Explained Correlation}
 \usage{
-  acor(X, W, Y, V, xcenter = TRUE, ycenter = TRUE,
+  acor(x, w, y, v, xcenter = TRUE, ycenter = TRUE,
     xscale = FALSE, yscale = FALSE)
 }
 \arguments{
-  \item{X}{a numeric matrix which provides the data from
+  \item{x}{a numeric matrix which provides the data from
   the first domain}
 
-  \item{W}{a numeric data matrix with the projection
-  vectors related to \code{X} as columns (returned as
-  \code{xcoef} from \code{\link{nscancor}})}
+  \item{w}{a numeric data matrix with the canonical vectors
+  related to \code{x} as columns (returned as \code{xcoef}
+  from \code{\link{nscancor}})}
 
-  \item{Y}{a numeric matrix which provides the data from
+  \item{y}{a numeric matrix which provides the data from
   the second domain}
 
-  \item{V}{a numeric data matrix with the projection
-  vectors related to \code{Y} as columns (returned as
-  \code{ycoef} from \code{\link{nscancor}})}
+  \item{v}{a numeric data matrix with the canonical vectors
+  related to \code{y} as columns (returned as \code{ycoef}
+  from \code{\link{nscancor}})}
 
   \item{xcenter}{a logical value indicating whether the
-  empirical mean of \code{X} should be subtracted.
-  Alternatively, a vector of length equal the number of
-  columns of \code{X} can be supplied.  The value is passed
-  to \code{\link{scale}}.}
+  empirical mean of (each column of) \code{x} should be
+  subtracted. Alternatively, a vector of length equal to
+  the number of columns of \code{x} can be supplied. The
+  value is passed to \code{\link{scale}}.}
 
-  \item{ycenter}{see \code{xcenter}}
+  \item{ycenter}{analogous to \code{xcenter}}
 
   \item{xscale}{a logical value indicating whether the
-  columns of \code{X} should be scaled to have unit
+  columns of \code{x} should be scaled to have unit
   variance before the analysis takes place. The default is
   \code{FALSE} for consistency with \code{cancor}.
-  Alternatively, a vector of length equal the number of
-  columns of \code{X} can be supplied.  The value is passed
+  Alternatively, a vector of length equal to the number of
+  columns of \code{x} can be supplied.  The value is passed
   to \code{\link{scale}}.}
 
-  \item{yscale}{see \code{xscale}}
+  \item{yscale}{analogous to \code{xscale}}
 }
 \description{
   \code{acor} computes the additional standard correlation
-  explained by each canonical component, taking into
-  account the possible non-orthogonality of
+  explained by each canonical variable, taking into account
+  the possible non-conjugacy of the canonical vectors in
   \eqn{\mathbf{W}}{W} and \eqn{\mathbf{V}}{V}.
 }
 \details{
-  The additional correlation of a component is measured
-  after projecting the corresponding projection vectors to
-  the ortho-complement space spanned by the previous
-  canonical variables. This procedure ensures that the
-  correlation explained by non-orthogonal projection
-  vectors is not counted multiple times.
+  The additional correlation is measured after projecting
+  the corresponding canonical vectors to the
+  ortho-complement space spanned by the previous canonical
+  variables. This procedure ensures that the correlation
+  explained by non-conjugate canonical vectors is not
+  counted multiple times.
 
   See Mackey (2009) for a presentation of generalized
   deflation in the context of principal component analysis

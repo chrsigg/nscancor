@@ -1,3 +1,5 @@
 export(acor)
 export(cardinality)
+export(macor)
+export(mcancor)
 export(nscancor)

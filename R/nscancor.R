@@ -16,15 +16,15 @@
 
 #' Non-Negative and Sparse CCA
 #' 
-#' Performs a canonical correlation analysis(CCA) where constraints such as 
+#' Performs a canonical correlation analysis (CCA) where constraints such as 
 #' non-negativity or  sparsity are enforced on the canonical vectors. The result
 #' of the analysis is returned as a list with the same elements as the list 
 #' returned by \code{cancor}.
 #' 
 #' \code{nscancor} computes the canonical vectors (called \code{xcoef} and 
 #' \code{ycoef}) using iterated regression steps, where the constraints suitable
-#' for each domain are enforced by choosing the appropriate regression method. 
-#' See Sigg et al. (2007) for an early application of the principle (not yet 
+#' for each domain are enforced by choosing the avvropriate regression method. 
+#' See Sigg et al. (2007) for an early avvlication of the principle (not yet 
 #' including generalized deflation).
 #' 
 #' Because constrained canonical vectors no longer correspond to true 
@@ -48,22 +48,22 @@
 #' @param y a numeric matrix which provides the data from the second domain
 #' @param xcenter a logical value indicating whether the empirical mean of (each
 #'   column of) \code{x} should be subtracted. Alternatively, a vector of length
-#'   equal the number of columns of \code{x} can be supplied. The value is
+#'   equal to the number of columns of \code{x} can be supplied. The value is
 #'   passed to \code{\link{scale}}.
 #' @param ycenter analogous to \code{xcenter}
 #' @param xscale a logical value indicating whether the columns of \code{x} 
 #'   should be scaled to have unit variance before the analysis takes place. The
 #'   default is \code{FALSE} for consistency with \code{cancor}. Alternatively, 
-#'   a vector of length equal the number of columns of \code{x} can be supplied.
+#'   a vector of length equal to the number of columns of \code{x} can be supplied.
 #'   The value is passed to \code{\link{scale}}.
 #' @param yscale analogous to \code{xscale}
-#' @param npairs the number of pairs of canonical variables to be computed. With
-#'   the default setting, pairs of variables are computed until either \code{x} or
+#' @param nvar the number of canonical variables to be computed for each domain.
+#'   With the default setting, canonical variables are computed until either \code{x} or
 #'   \code{y} is fully deflated.
 #' @param xpredict the regression function to predict the canonical variable for
 #'   \code{x}, given \code{y}. The formal arguments are the design matrix 
 #'   \code{y}, the regression target \code{xv} as the current canonical variable
-#'   for \code{x}, and \code{pp} as a counter of the current pair of canonical 
+#'   for \code{x}, and \code{vv} as a counter of the current pair of canonical 
 #'   variables (e.g. for enforcing different constraints for different canonical
 #'   vectors). See the examples for an illustration.
 #' @param ypredict analogous to \code{xpredict}
@@ -101,15 +101,15 @@
 #' @references Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and Buhmann, 
 #'   J. (2007) Nonnegative CCA for Audiovisual Source Separation. In 
 #'   \emph{Proceedings of the 2007 IEEE Workshop on Machine Learning for Signal 
-#'   Processing} (pp. 253--258).
+#'   Processing} (vv. 253--258).
 #' @references Mackey, L. (2009) Deflation Methods for Sparse PCA. In 
-#'   \emph{Advances in Neural Information Processing Systems} (pp. 1017--1024).
+#'   \emph{Advances in Neural Information Processing Systems} (vv. 1017--1024).
 #'   
 #' @seealso  \code{\link{acor}}, \code{\link{cancor}}, \code{\link{scale}}
 #'   
 #' @example inst/nscancor_examples.R
 nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE, 
-                      xscale = FALSE, yscale = FALSE, npairs = min(dim(x), dim(y)),
+                      xscale = FALSE, yscale = FALSE, nvar = min(dim(x), dim(y)),
                       xpredict, ypredict, 
                       cor_tol = NULL, nrestart = 10, iter_tol = 1e-3, iter_max = 30,
                       verbosity = 0) {
@@ -129,19 +129,19 @@ nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE,
     if(any(xsc == 0) || any(ysc == 0))
         stop("cannot rescale a constant/zero column to unit variance")
     
-    corr <- rep(0, npairs)  # additional explained correlation
-    W <- matrix(0, dx, npairs)  # canonical vectors for X
-    V <- matrix(0, dy, npairs)  # canonical vectors for Y
-    Qx <- matrix(0, dx, npairs)  # orthonormal basis spanned by the canonical variables X%*%W
-    Qy <- matrix(0, dy, npairs)  # orthonormal basis spanned by the canonical variables Y%*%V
+    corr <- rep(0, nvar)  # additional explained correlation
+    W <- matrix(0, dx, nvar)  # canonical vectors for X
+    V <- matrix(0, dy, nvar)  # canonical vectors for Y
+    Qx <- matrix(0, dx, nvar)  # orthonormal basis spanned by the canonical variables X%*%W
+    Qy <- matrix(0, dy, nvar)  # orthonormal basis spanned by the canonical variables Y%*%V
     Xp <- X  # X projected to the orthocomplement space spanned by Qx
     Yp <- Y  # Y projected to the orthocomplement space spanned by Qy
     
-    for (pp in seq(npairs)) {
+    for (vv in seq(nvar)) {
         obj_opt <- -Inf
         for (rr in seq(nrestart)) {
             
-            res <- emcca(X, Xp, Y, Yp, xpredict, ypredict, pp, iter_tol, 
+            res <- nscc_inner(X, Xp, Y, Yp, xpredict, ypredict, vv, iter_tol, 
                          iter_max, verbosity)               
             
             # keep solution with maximum objective
@@ -151,51 +151,51 @@ nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE,
                 v_opt <- res$v
             }
             if (verbosity > 0) {
-                print(paste("variable pair ", pp, ": ",
+                print(paste("canonical variable ", vv, ": ",
                             "maximum objective is ", format(obj_opt, digits = 4),
                             " at random restart ", rr-1, sep = ""))
             }
         }
         w <- w_opt  
         v <- v_opt
-        W[ ,pp] <- w
-        V[ ,pp] <- v
-        corr[pp] <- cor(Xp%*%w, Yp%*%v)
+        W[ ,vv] <- w
+        V[ ,vv] <- v
+        corr[vv] <- cor(Xp%*%w, Yp%*%v)
         
         # update Qx and Qy
         XtXw <- t(X)%*%(X%*%w)
         YtYv <- t(Y)%*%(Y%*%v)
-        if (pp > 1) {
-            qx <- XtXw - Qx[ , 1:(pp-1)]%*%(t(Qx[ , 1:(pp-1)])%*%XtXw) 
-            qy <- YtYv - Qy[ , 1:(pp-1)]%*%(t(Qy[ , 1:(pp-1)])%*%YtYv) 
+        if (vv > 1) {
+            qx <- XtXw - Qx[ , 1:(vv-1)]%*%(t(Qx[ , 1:(vv-1)])%*%XtXw) 
+            qy <- YtYv - Qy[ , 1:(vv-1)]%*%(t(Qy[ , 1:(vv-1)])%*%YtYv) 
         } else {
             qx <- XtXw
             qy <- YtYv
         }
         qx <- qx/normv(qx)
         qy <- qy/normv(qy)
-        Qx[ , pp] <- qx
-        Qy[ , pp] <- qy
+        Qx[ , vv] <- qx
+        Qy[ , vv] <- qy
         
         # deflate data matrices
         Xp <- Xp - Xp%*%qx%*%t(qx)  
         Yp <- Yp - Yp%*%qy%*%t(qy)  
         
         # current additionally explained correlation is below threshold cor_tol
-        if (!is.null(cor_tol) && corr[pp] < cor_tol*corr[1]) {
-            corr <- corr[1:(pp-1)]
-            W <- W[ , 1:(pp-1), drop=FALSE]
-            V <- V[ , 1:(pp-1), drop=FALSE]
+        if (!is.null(cor_tol) && corr[vv] < cor_tol*corr[1]) {
+            corr <- corr[1:(vv-1)]
+            W <- W[ , 1:(vv-1), drop=FALSE]
+            V <- V[ , 1:(vv-1), drop=FALSE]
             break
         }    
         # at least one data matrix is fully deflated
-        else if (pp < npairs && (all(abs(Xp) < 1e-14) || all(abs(Yp) < 1e-14))) { 
+        else if (vv < nvar && (all(abs(Xp) < 1e-14) || all(abs(Yp) < 1e-14))) { 
             if (verbosity > 0) {
-                print("at least one data matrix is fully deflated, less than 'npairs' pairs of variables could be computed")            
+                print("at least one data matrix is fully deflated, less than 'nvar' pairs of variables could be computed")            
             }
-            corr <- corr[1:pp]
-            W <- W[ , 1:pp, drop=FALSE]
-            V <- V[ , 1:pp, drop=FALSE]
+            corr <- corr[1:vv]
+            W <- W[ , 1:vv, drop=FALSE]
+            V <- V[ , 1:vv, drop=FALSE]
             break
         }
     }
@@ -209,7 +209,7 @@ nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE,
                 yscale = if(is.null(ysc)) FALSE else ysc))
 }
 
-emcca <- function(X, Xp, Y, Yp, xpredict, ypredict, pp, iter_tol, iter_max, 
+nscc_inner <- function(X, Xp, Y, Yp, xpredict, ypredict, vv, iter_tol, iter_max, 
                   verbosity) {
     
     n <- nrow(X)
@@ -220,10 +220,10 @@ emcca <- function(X, Xp, Y, Yp, xpredict, ypredict, pp, iter_tol, iter_max,
     # functions return non-negative vectors
     w <- rnorm(dx);
     v <- rnorm(dy);
-    if (all(ypredict(Xp, Yp[ , 1], pp) >= 0)) {
+    if (all(ypredict(Xp, Yp[ , 1], vv) >= 0)) {
         w <- abs(w)
     }
-    if (all(xpredict(Yp, Xp[ , 1], pp) >= 0)) {
+    if (all(xpredict(Yp, Xp[ , 1], vv) >= 0)) {
         v <- abs(v)
     }
     w <- w/normv(Xp%*%w)     
@@ -238,12 +238,12 @@ emcca <- function(X, Xp, Y, Yp, xpredict, ypredict, pp, iter_tol, iter_max,
         }
         obj_old <- obj
         
-        w <- ypredict(Xp, Yp%*%v, pp)
+        w <- ypredict(Xp, Yp%*%v, vv)
         if (all(w == 0))
             stop("w collapsed to the zero vector, try relaxing the constraints")
         w <- w/normv(Xp%*%w)
         
-        v <- xpredict(Yp, Xp%*%w, pp)
+        v <- xpredict(Yp, Xp%*%w, vv)
         if (all(v == 0))
             stop("v collapsed to the zero vector, try relaxing the constraints")
         v <- v/normv(Yp%*%v)

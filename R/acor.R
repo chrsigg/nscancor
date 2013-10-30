@@ -15,49 +15,50 @@
 
 #' Additional Explained Correlation
 #' 
-#' \code{acor} computes the additional
-#' standard correlation explained by each canonical component, taking into account 
-#' the possible non-orthogonality of \eqn{\mathbf{W}}{W} and \eqn{\mathbf{V}}{V}.
+#' \code{acor} computes the additional standard correlation explained by each
+#' canonical variable, taking into account the possible non-conjugacy of the
+#' canonical vectors in \eqn{\mathbf{W}}{W} and \eqn{\mathbf{V}}{V}.
 #' 
-#' The additional correlation of a component is measured after projecting the 
-#' corresponding projection vectors to the ortho-complement space spanned by the 
-#' previous canonical variables. This procedure ensures that the correlation explained
-#' by non-orthogonal projection vectors is not counted multiple times. 
+#' The additional correlation is measured after projecting the 
+#' corresponding canonical vectors to the ortho-complement space spanned by the
+#' previous canonical variables. This procedure ensures that the correlation
+#' explained by non-conjugate canonical vectors is not counted multiple times.
 #' 
-#' See Mackey (2009) for a presentation of generalized deflation in the context
+#' See Mackey (2009) for a presentation of generalized deflation in the context 
 #' of principal component analysis (PCA), which was adapted here to CCA.
 #' 
 #' @references Mackey, L. (2009) Deflation Methods for Sparse PCA. In 
 #'   \emph{Advances in Neural Information Processing Systems} (pp. 1017--1024).
-#'
+#'   
 #' @export
-#' @param X a numeric matrix which provides the data from the first domain
-#' @param W a numeric data matrix with the projection vectors related to
-#'   \code{X} as columns (returned as \code{xcoef} from \code{\link{nscancor}})
-#' @param Y a numeric matrix which provides the data from the second domain
-#' @param V a numeric data matrix with the projection vectors related to
-#'   \code{Y} as columns (returned as \code{ycoef} from \code{\link{nscancor}})
-#' @param xcenter a logical value indicating whether the empirical mean of \code{X}
-#'   should be subtracted. Alternatively, a vector of
-#'   length equal the number of columns of \code{X} can be supplied.
+#' @param x a numeric matrix which provides the data from the first domain
+#' @param w a numeric data matrix with the canonical vectors related to 
+#'   \code{x} as columns (returned as \code{xcoef} from \code{\link{nscancor}})
+#' @param y a numeric matrix which provides the data from the second domain
+#' @param v a numeric data matrix with the canonical vectors related to 
+#'   \code{y} as columns (returned as \code{ycoef} from \code{\link{nscancor}})
+#' @param xcenter a logical value indicating whether the empirical mean of (each
+#'   column of) \code{x} should be subtracted. Alternatively, a vector of length
+#'   equal to the number of columns of \code{x} can be supplied. The value is
+#'   passed to \code{\link{scale}}.
+#' @param ycenter analogous to \code{xcenter}
+#' @param xscale a logical value indicating whether the columns of \code{x} 
+#'   should be scaled to have unit variance before the analysis takes place. The
+#'   default is \code{FALSE} for consistency with \code{cancor}. Alternatively, 
+#'   a vector of length equal to the number of columns of \code{x} can be supplied.
 #'   The value is passed to \code{\link{scale}}.
-#' @param ycenter see \code{xcenter}
-#' @param xscale a logical value indicating whether the columns of \code{X} should
-#'   be scaled to have unit variance before the analysis takes
-#'   place. The default is \code{FALSE} for consistency with \code{cancor}.
-#'   Alternatively, a vector of length
-#'   equal the number of columns of \code{X} can be supplied.  The
-#'   value is passed to \code{\link{scale}}.
-#' @param yscale see \code{xscale}
-acor <- function(X, W, Y, V,  xcenter = TRUE, ycenter = TRUE, 
+#' @param yscale analogous to \code{xscale}
+acor <- function(x, w, y, v,  xcenter = TRUE, ycenter = TRUE, 
                  xscale = FALSE, yscale = FALSE) {
   
-  dx <- ncol(X)
-  dy <- ncol(Y)
-  ncomp <- ncol(W)
+  dx <- ncol(x)
+  dy <- ncol(y)
+  ncomp <- ncol(w)
   
-  X <- scale(X, center = xcenter, scale = xscale)
-  Y <- scale(Y, center = ycenter, scale = yscale)
+  X <- scale(x, center = xcenter, scale = xscale)
+  Y <- scale(y, center = ycenter, scale = yscale)
+  W <- w
+  V <- v
   
   corr <- rep(0, ncomp)  # additional explained correlation
   Qx <- matrix(0, dx, ncomp)  # orthonormal basis spanned by the canonical variables X%*%W

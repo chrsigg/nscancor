@@ -13,7 +13,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-context("nscancor")
+context("mcancor")
 
 test_that("cancor equivalence", {
     set.seed(1)
@@ -26,38 +26,46 @@ test_that("cancor equivalence", {
     xpredict = function(Y, x, cc) {
       return(ginv(Y)%*%x)
     } 
-    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict,
+    mcc <- mcancor(list(X, Y), predict=list(xpredict, xpredict), nvar = 5,
                      iter_tol=1e-10, iter_max=500)
     
-    expect_true(normv(cc$cor - nscc$cor) < 1e-3)
-    expect_true(norm(abs(cc$xcoef) - abs(nscc$xcoef), "F") < 1e-3)
-    expect_true(norm(abs(cc$ycoef) - abs(nscc$ycoef), "F") < 1e-3)
-    expect_true(normv(cc$xcenter - nscc$xcenter) < 1e-3)
-    expect_true(normv(cc$ycenter - nscc$ycenter) < 1e-3)
+    expect_true(normv(cc$cor - mcc$cor[1, 2, ]) < 1e-3)
+    expect_true(norm(abs(cc$xcoef) - abs(mcc$coef[[1]]), "F") < 1e-3)
+    expect_true(norm(abs(cc$ycoef) - abs(mcc$coef[[2]]), "F") < 1e-3)
+    expect_true(normv(cc$xcenter - mcc$center[[1]]) < 1e-3)
+    expect_true(normv(cc$ycenter - mcc$center[[2]]) < 1e-3)
 })
 
 test_that("corr tolerance early stopping", {
     set.seed(1)
     d <- 5
     n <- 10
-    X <- matrix(rnorm(n*d), n)
-    Y <- matrix(rnorm(n*d), n)
+    X <- list(matrix(rnorm(n*d), n), matrix(rnorm(n*d), n), matrix(rnorm(n*d), n))
     
-    xpredict = function(Y, x, cc) {
+    pred = function(Y, x, cc) {
       return(ginv(Y)%*%x)
     } 
-    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, cor_tol=0.3)
-    expect_true(nscc$cor[length(nscc$cor)]/nscc$cor[1] >= 0.3)
+    
+    cor_trsh <- function(cor_tol) {
+      mcc <- mcancor(X, predict=list(pred, pred, pred), cor_tol=cor_tol)
+      nvar <- ncol(mcc$coef[[1]])
+      sum_corr_np <- sum(mcc$cor[ , , nvar] - diag(3))/2
+      sum_corr_1 <- sum(mcc$cor[ , , 1] - diag(3))/2
+      expect_true(sum_corr_np/sum_corr_1 >= cor_tol)  
+    }
+    cor_trsh(0)
+    cor_trsh(0.6)
+    cor_trsh(1)
 })
  
 test_that("rank of matrix smaller than nvar", {
     a <- 1:5
     X <- a %o% a
     
-    xpredict = function(Y, x, cc) {
+    pred = function(Y, x, cc) {
       return(ginv(Y)%*%x)
     } 
-    nscc <- nscancor(X, X, xpredict=xpredict, ypredict=xpredict, nvar = 2)
-    expect_true(length(nscc$cor) == 1)
+    mcc <- mcancor(list(X, X), predict=list(pred, pred), nvar = 2)
+    expect_true(dim(mcc$cor)[3] == 1)
 })
 

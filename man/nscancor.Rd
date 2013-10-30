@@ -4,7 +4,7 @@
 \usage{
   nscancor(x, y, xcenter = TRUE, ycenter = TRUE,
     xscale = FALSE, yscale = FALSE,
-    npairs = min(dim(x), dim(y)), xpredict, ypredict,
+    nvar = min(dim(x), dim(y)), xpredict, ypredict,
     cor_tol = NULL, nrestart = 10, iter_tol = 0.001,
     iter_max = 30, verbosity = 0)
 }
@@ -17,9 +17,9 @@
 
   \item{xcenter}{a logical value indicating whether the
   empirical mean of (each column of) \code{x} should be
-  subtracted. Alternatively, a vector of length equal the
-  number of columns of \code{x} can be supplied. The value
-  is passed to \code{\link{scale}}.}
+  subtracted. Alternatively, a vector of length equal to
+  the number of columns of \code{x} can be supplied. The
+  value is passed to \code{\link{scale}}.}
 
   \item{ycenter}{analogous to \code{xcenter}}
 
@@ -27,22 +27,22 @@
   columns of \code{x} should be scaled to have unit
   variance before the analysis takes place. The default is
   \code{FALSE} for consistency with \code{cancor}.
-  Alternatively, a vector of length equal the number of
+  Alternatively, a vector of length equal to the number of
   columns of \code{x} can be supplied.  The value is passed
   to \code{\link{scale}}.}
 
   \item{yscale}{analogous to \code{xscale}}
 
-  \item{npairs}{the number of pairs of canonical variables
-  to be computed. With the default setting, pairs of
-  variables are computed until either \code{x} or \code{y}
-  is fully deflated.}
+  \item{nvar}{the number of canonical variables to be
+  computed for each domain.  With the default setting,
+  canonical variables are computed until either \code{x} or
+  \code{y} is fully deflated.}
 
   \item{xpredict}{the regression function to predict the
   canonical variable for \code{x}, given \code{y}. The
   formal arguments are the design matrix \code{y}, the
   regression target \code{xv} as the current canonical
-  variable for \code{x}, and \code{pp} as a counter of the
+  variable for \code{x}, and \code{vv} as a counter of the
   current pair of canonical variables (e.g. for enforcing
   different constraints for different canonical vectors).
   See the examples for an illustration.}
@@ -91,7 +91,7 @@
   \code{xscale}}
 }
 \description{
-  Performs a canonical correlation analysis(CCA) where
+  Performs a canonical correlation analysis (CCA) where
   constraints such as non-negativity or sparsity are
   enforced on the canonical vectors. The result of the
   analysis is returned as a list with the same elements as
@@ -101,8 +101,8 @@
   \code{nscancor} computes the canonical vectors (called
   \code{xcoef} and \code{ycoef}) using iterated regression
   steps, where the constraints suitable for each domain are
-  enforced by choosing the appropriate regression method.
-  See Sigg et al. (2007) for an early application of the
+  enforced by choosing the avvropriate regression method.
+  See Sigg et al. (2007) for an early avvlication of the
   principle (not yet including generalized deflation).
 
   Because constrained canonical vectors no longer
@@ -139,41 +139,41 @@ set.seed(1)
 ### Unconstrained CCA, produces identical results to calling 
 # cancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid)
 
-ypredict = function(X, yv, vv) {
-  return(ginv(X)\%*\%yv)
+ypredict <- function(x, yv, vv) {
+  return(ginv(x)\%*\%yv)
 }
-xpredict = function(Y, xv, vv) {
-  return(ginv(Y)\%*\%xv)
+xpredict <- function(y, xv, vv) {
+  return(ginv(y)\%*\%xv)
 } 
-nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
+cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
          ypredict=ypredict)
 
 
 ### Non-negative sparse CCA using glmnet() as the regression function
 
-ypredict <- function(X, yv, vv) {
-    en <- glmnet(X, yv, alpha=0.5, intercept=FALSE, dfmax=5, lower.limits=0)
+ypredict <- function(x, yv, vv) {
+    en <- glmnet(x, yv, alpha=0.5, intercept=FALSE, dfmax=5, lower.limits=0)
     W <- coef(en)
     return(W[2:nrow(W), ncol(W)])
 }
-xpredict <- function(Y, xv, vv) {
-    en <- glmnet(Y, xv, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
+xpredict <- function(y, xv, vv) {
+    en <- glmnet(y, xv, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
     V <- coef(en)
     return(V[2:nrow(V), ncol(V)])
 }
-nscancor(nutrimouse$gene, nutrimouse$lipid, xpredict=xpredict, npairs=5,
-         ypredict=ypredict, verbosity=2)
+nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, xpredict=xpredict, nvar=5,
+         ypredict=ypredict)
 }
 \references{
   Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and
   Buhmann, J. (2007) Nonnegative CCA for Audiovisual Source
   Separation. In \emph{Proceedings of the 2007 IEEE
-  Workshop on Machine Learning for Signal Processing} (pp.
+  Workshop on Machine Learning for Signal Processing} (vv.
   253--258).
 
   Mackey, L. (2009) Deflation Methods for Sparse PCA. In
   \emph{Advances in Neural Information Processing Systems}
-  (pp. 1017--1024).
+  (vv. 1017--1024).
 }
 \seealso{
   \code{\link{acor}}, \code{\link{cancor}},

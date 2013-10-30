@@ -13,7 +13,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-context("additional correlation")
+context("multi-domain additional correlation")
 
 test_that("cancor equivalence", {
     set.seed(1)
@@ -22,7 +22,7 @@ test_that("cancor equivalence", {
       X <- matrix(runif(n*d), n)
       Y <- matrix(runif(n*d), n)
       cc <- cancor(X, Y)
-      expect_equal(acor(X, cc$xcoef, Y, cc$ycoef), cc$cor)  
+      expect_equal(macor(list(X, Y), list(cc$xcoef, cc$ycoef))[1, 2, ], cc$cor)  
     }
     equiv(20, 5)
     equiv(10, 9)
@@ -39,27 +39,27 @@ test_that("sparse CCA equivalence", {
       V <- coef(en)
       return(V[2:nrow(V), ncol(V)])
     }
-    scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
-    expect_equal(acor(X, scc$xcoef, Y, scc$ycoef), scc$cor)  
+    scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nvar=2)
+    expect_equal(macor(list(X, Y), list(scc$xcoef, scc$ycoef))[1, 2, ], scc$cor)  
   }
   equiv(10, 5)
   equiv(10, 10)
   equiv(5, 10)
 })
 
-test_that("non-negative sparse CCA equivalence", {
+test_that("sparse mCCA equivalence", {
   set.seed(1)
   
   equiv <- function (n,d) {
-    X <- matrix(runif(n*d), n)
-    Y <- matrix(runif(n*d), n)
-    xpredict <- function(Y, x, cc) {
-      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=2, lower.limits=0)
+    X <- list(matrix(runif(n*d), n), matrix(runif(n*d), n), matrix(runif(n*d), n))
+    pred <- function(Y, x, cc) {
+      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=2)
       V <- coef(en)
       return(V[2:nrow(V), ncol(V)])
     }
-    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
-    expect_equal(acor(X, nscc$xcoef, Y, nscc$ycoef), nscc$cor)  
+    predict <- list(pred, pred, pred)
+    mcc <- mcancor(X, predict=predict, nvar=2)
+    expect_equal(macor(X, mcc$coef), mcc$cor)  
   }
   equiv(10, 5)
   equiv(10, 10)
