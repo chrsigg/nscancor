@@ -225,7 +225,7 @@ mcc_inner <- function(X, Xp, dx, predict, vv, iter_tol, iter_max, verbosity) {
     obj_old <- obj
     
     for (mm in 1:m) {
-      v <- predict[[m]](Xp[[mm]], rowSums(XpW[ , -mm, drop=FALSE]), vv)  
+      v <- predict[[mm]](Xp[[mm]], rowSums(XpW[ , -mm, drop=FALSE]), vv)  
       if (all(v == 0))
         stop("w collapsed to the zero vector, try relaxing the constraints")
       
