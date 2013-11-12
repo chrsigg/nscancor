@@ -136,7 +136,8 @@ data(nutrimouse, package="CCA")
 
 set.seed(1)
 
-### Unconstrained CCA, produces identical results to calling 
+### 
+# Unconstrained CCA, produces identical results to calling 
 # cancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid)
 
 ypredict <- function(x, yv, vv) {
@@ -146,23 +147,28 @@ xpredict <- function(y, xv, vv) {
   return(ginv(y)\%*\%xv)
 } 
 cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
-         ypredict=ypredict)
+               ypredict=ypredict)
 
 
-### Non-negative sparse CCA using glmnet() as the regression function
+### 
+# Non-negative sparse CCA using glmnet() as the regression function, where
+# different regularisers are enforced on the different data domains and pairs of 
+# canonical variables.
 
+dfmax_w <- c(40, 15, 5)
 ypredict <- function(x, yv, vv) {
-    en <- glmnet(x, yv, alpha=0.5, intercept=FALSE, dfmax=5, lower.limits=0)
-    W <- coef(en)
-    return(W[2:nrow(W), ncol(W)])
+  en <- glmnet(x, yv, alpha=0.5, intercept=FALSE, dfmax=dfmax_w[vv], lower.limits=0)
+  W <- coef(en)
+  return(W[2:nrow(W), ncol(W)])
 }
+dfmax_v <- c(7, 5, 3)
 xpredict <- function(y, xv, vv) {
-    en <- glmnet(y, xv, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
-    V <- coef(en)
-    return(V[2:nrow(V), ncol(V)])
+  en <- glmnet(y, xv, alpha=0.5, intercept=FALSE, dfmax=dfmax_v[vv])
+  V <- coef(en)
+  return(V[2:nrow(V), ncol(V)])
 }
-nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, xpredict=xpredict, nvar=5,
-         ypredict=ypredict)
+nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar=length(dfmax_w),
+                 xpredict=xpredict, ypredict=ypredict)
 }
 \references{
   Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and
