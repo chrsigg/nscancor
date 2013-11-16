@@ -2,23 +2,21 @@
 \alias{acor}
 \title{Additional Explained Correlation}
 \usage{
-  acor(x, w, y, v, xcenter = TRUE, ycenter = TRUE,
+  acor(x, xcoef, y, ycoef, xcenter = TRUE, ycenter = TRUE,
     xscale = FALSE, yscale = FALSE)
 }
 \arguments{
   \item{x}{a numeric matrix which provides the data from
   the first domain}
 
-  \item{w}{a numeric data matrix with the canonical vectors
-  related to \code{x} as columns (returned as \code{xcoef}
-  from \code{\link{nscancor}})}
+  \item{xcoef}{a numeric data matrix with the canonical
+  vectors related to \code{x} as its columns.}
 
   \item{y}{a numeric matrix which provides the data from
   the second domain}
 
-  \item{v}{a numeric data matrix with the canonical vectors
-  related to \code{y} as columns (returned as \code{ycoef}
-  from \code{\link{nscancor}})}
+  \item{ycoef}{a numeric data matrix with the canonical
+  vectors related to \code{y} as its columns.}
 
   \item{xcenter}{a logical value indicating whether the
   empirical mean of (each column of) \code{x} should be
@@ -33,16 +31,27 @@
   variance before the analysis takes place. The default is
   \code{FALSE} for consistency with \code{cancor}.
   Alternatively, a vector of length equal to the number of
-  columns of \code{x} can be supplied.  The value is passed
+  columns of \code{x} can be supplied. The value is passed
   to \code{\link{scale}}.}
 
   \item{yscale}{analogous to \code{xscale}}
 }
+\value{
+  \code{acor} returns a list of class \code{nscancor}
+  containing the following elements: \item{cor}{the
+  additional correlation explained by each pair of
+  canonical variables} \item{xcoef, xcenter, xscale}{copied
+  from the input arguments} \item{ycoef, ycenter,
+  yscale}{copied from the input arguments} \item{xp}{the
+  deflated data matrix corresponding to \code{x}}
+  \item{yp}{anologous to \code{xp}}
+}
 \description{
   \code{acor} computes the additional standard correlation
   explained by each canonical variable, taking into account
-  the possible non-conjugacy of the canonical vectors in
-  \eqn{\mathbf{W}}{W} and \eqn{\mathbf{V}}{V}.
+  the possible non-conjugacy of the canonical vectors. The
+  result of the analysis is returned as a list of class
+  \code{nscancor}.
 }
 \details{
   The additional correlation is measured after projecting
@@ -50,11 +59,14 @@
   ortho-complement space spanned by the previous canonical
   variables. This procedure ensures that the correlation
   explained by non-conjugate canonical vectors is not
-  counted multiple times.
+  counted multiple times. See Mackey (2009) for a
+  presentation of generalized deflation in the context of
+  principal component analysis (PCA), which was adapted
+  here to CCA.
 
-  See Mackey (2009) for a presentation of generalized
-  deflation in the context of principal component analysis
-  (PCA), which was adapted here to CCA.
+  \code{acor} is also useful to build a partial CCA model,
+  to be completed with additional canonical variables
+  computed using \code{\link{nscancor}}.
 }
 \references{
   Mackey, L. (2009) Deflation Methods for Sparse PCA. In

@@ -79,9 +79,6 @@
 #'   matrices} \item{xscale}{the list of empirical standard deviations used to
 #'   scale the data matrices}
 #'   
-#' @note Deflating the data matrices accumulates numerical errors over 
-#'   successive canonical vectors.
-#'   
 #' @seealso  \code{\link{macor}}, \code{\link{nscancor}}, \code{\link{scale}}
 #'   
 #' @example inst/mcancor_examples.R

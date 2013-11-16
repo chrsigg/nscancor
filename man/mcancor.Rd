@@ -99,10 +99,6 @@
   an analysis. Its objective is to maximize the sum of all
   pairwise correlations of the canonical variables.
 }
-\note{
-  Deflating the data matrices accumulates numerical errors
-  over successive canonical vectors.
-}
 \examples{
 library(glmnet)
 data(breastdata, package="PMA")

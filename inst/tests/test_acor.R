@@ -22,7 +22,7 @@ test_that("cancor equivalence", {
       X <- matrix(runif(n*d), n)
       Y <- matrix(runif(n*d), n)
       cc <- cancor(X, Y)
-      expect_equal(acor(X, cc$xcoef, Y, cc$ycoef), cc$cor)  
+      expect_equal(acor(X, cc$xcoef, Y, cc$ycoef)$cor, cc$cor)  
     }
     equiv(20, 5)
     equiv(10, 9)
@@ -40,7 +40,7 @@ test_that("sparse CCA equivalence", {
       return(V[2:nrow(V), ncol(V)])
     }
     scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
-    expect_equal(acor(X, scc$xcoef, Y, scc$ycoef), scc$cor)  
+    expect_equal(acor(X, scc$xcoef, Y, scc$ycoef)$cor, scc$cor)  
   }
   equiv(10, 5)
   equiv(10, 10)
@@ -59,7 +59,7 @@ test_that("non-negative sparse CCA equivalence", {
       return(V[2:nrow(V), ncol(V)])
     }
     nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
-    expect_equal(acor(X, nscc$xcoef, Y, nscc$ycoef), nscc$cor)  
+    expect_equal(acor(X, nscc$xcoef, Y, nscc$ycoef)$cor, nscc$cor)  
   }
   equiv(10, 5)
   equiv(10, 10)

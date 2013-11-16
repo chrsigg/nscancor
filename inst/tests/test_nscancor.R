@@ -26,7 +26,7 @@ test_that("cancor equivalence", {
     xpredict = function(Y, x, cc) {
       return(ginv(Y)%*%x)
     } 
-    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict,
+    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, 
                      iter_tol=1e-10, iter_max=500)
     
     expect_true(normv(cc$cor - nscc$cor) < 1e-3)

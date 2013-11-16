@@ -6,7 +6,7 @@
     xscale = FALSE, yscale = FALSE,
     nvar = min(dim(x), dim(y)), xpredict, ypredict,
     cor_tol = NULL, nrestart = 10, iter_tol = 0.001,
-    iter_max = 30, verbosity = 0)
+    iter_max = 30, partial_model = NULL, verbosity = 0)
 }
 \arguments{
   \item{x}{a numeric matrix which provides the data from
@@ -28,7 +28,7 @@
   variance before the analysis takes place. The default is
   \code{FALSE} for consistency with \code{cancor}.
   Alternatively, a vector of length equal to the number of
-  columns of \code{x} can be supplied.  The value is passed
+  columns of \code{x} can be supplied. The value is passed
   to \code{\link{scale}}.}
 
   \item{yscale}{analogous to \code{xscale}}
@@ -72,30 +72,43 @@
   \code{iter_tol} or the \code{iter_max} criterion is
   satisfied.}
 
+  \item{partial_model}{\code{NULL} or an object of class
+  \code{nscancor}. The computation can be continued from a
+  partial model by providing an \code{nscancor} object
+  (either from a previous run of this function or from
+  \code{\link{acor}}) and setting \code{nvar} to a value
+  greater than the number of canonical variables contained
+  in the partial model. See the examples for an
+  illustration.}
+
   \item{verbosity}{an integer specifying the verbosity
   level. Greater values result in more output, the default
   is to be quiet.}
 }
 \value{
-  \code{nscancor} returns a list with the following
-  elements: \item{cor}{the additional correlation explained
-  by each pair of canonical variables, see
-  \code{\link{acor}}.} \item{xcoef}{the matrix containing
-  the canonical vectors related to \code{x} as its columns}
+  \code{nscancor} returns a list of class \code{nscancor}
+  containing the following elements: \item{cor}{the
+  additional correlation explained by each pair of
+  canonical variables, see \code{\link{acor}}.}
+  \item{xcoef}{the matrix containing the canonical vectors
+  related to \code{x} as its columns}
   \item{ycoef}{analogous to \code{xcoef}} \item{xcenter}{if
   \code{xcenter} is \code{TRUE} the centering vector, else
   the zero vector (in accordance with \code{cancor})}
   \item{ycenter}{analogous to \code{xcenter}}
   \item{xscale}{if \code{xscale} is \code{TRUE} the scaling
   vector, else FALSE } \item{yscale}{analogous to
-  \code{xscale}}
+  \code{xscale}} \item{xp}{the deflated data matrix
+  corresponding to \code{x}} \item{yp}{anologous to
+  \code{xp}}
 }
 \description{
   Performs a canonical correlation analysis (CCA) where
   constraints such as non-negativity or sparsity are
   enforced on the canonical vectors. The result of the
-  analysis is returned as a list with the same elements as
-  the list returned by \code{cancor}.
+  analysis is returned as a list of class \code{nscancor},
+  which contains a superset of the elements returned by
+  \code{\link{cancor}}.
 }
 \details{
   \code{nscancor} computes the canonical vectors (called
@@ -125,10 +138,6 @@
 
   See the references for further details.
 }
-\note{
-  Deflating the data matrices accumulates numerical errors
-  over successive canonical vectors.
-}
 \examples{
 library(MASS)
 library(glmnet)
@@ -155,20 +164,25 @@ cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict,
 # different regularisers are enforced on the different data domains and pairs of 
 # canonical variables.
 
-dfmax_w <- c(40, 15, 5)
+dfmax_w <- c(40, 15, 10, 10)
 ypredict <- function(x, yv, vv) {
   en <- glmnet(x, yv, alpha=0.5, intercept=FALSE, dfmax=dfmax_w[vv], lower.limits=0)
   W <- coef(en)
   return(W[2:nrow(W), ncol(W)])
 }
-dfmax_v <- c(7, 5, 3)
+dfmax_v <- c(7, 5, 5, 3)
 xpredict <- function(y, xv, vv) {
   en <- glmnet(y, xv, alpha=0.5, intercept=FALSE, dfmax=dfmax_v[vv])
   V <- coef(en)
   return(V[2:nrow(V), ncol(V)])
 }
-nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar=length(dfmax_w),
+nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar=3,
                  xpredict=xpredict, ypredict=ypredict)
+
+# continue the computation from a partial model
+nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar=4,
+                 xpredict=xpredict, ypredict=ypredict,
+                 partial_model=nscc)
 }
 \references{
   Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and

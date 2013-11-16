@@ -18,8 +18,8 @@
 #' 
 #' Performs a canonical correlation analysis (CCA) where constraints such as 
 #' non-negativity or  sparsity are enforced on the canonical vectors. The result
-#' of the analysis is returned as a list with the same elements as the list 
-#' returned by \code{cancor}.
+#' of the analysis is returned as a list of class \code{nscancor}, which 
+#' contains a superset of the elements returned by \code{\link{cancor}}.
 #' 
 #' \code{nscancor} computes the canonical vectors (called \code{xcoef} and 
 #' \code{ycoef}) using iterated regression steps, where the constraints suitable
@@ -48,18 +48,18 @@
 #' @param y a numeric matrix which provides the data from the second domain
 #' @param xcenter a logical value indicating whether the empirical mean of (each
 #'   column of) \code{x} should be subtracted. Alternatively, a vector of length
-#'   equal to the number of columns of \code{x} can be supplied. The value is
+#'   equal to the number of columns of \code{x} can be supplied. The value is 
 #'   passed to \code{\link{scale}}.
 #' @param ycenter analogous to \code{xcenter}
 #' @param xscale a logical value indicating whether the columns of \code{x} 
 #'   should be scaled to have unit variance before the analysis takes place. The
 #'   default is \code{FALSE} for consistency with \code{cancor}. Alternatively, 
-#'   a vector of length equal to the number of columns of \code{x} can be supplied.
-#'   The value is passed to \code{\link{scale}}.
+#'   a vector of length equal to the number of columns of \code{x} can be 
+#'   supplied. The value is passed to \code{\link{scale}}.
 #' @param yscale analogous to \code{xscale}
 #' @param nvar the number of canonical variables to be computed for each domain.
-#'   With the default setting, canonical variables are computed until either \code{x} or
-#'   \code{y} is fully deflated.
+#'   With the default setting, canonical variables are computed until either 
+#'   \code{x} or \code{y} is fully deflated.
 #' @param xpredict the regression function to predict the canonical variable for
 #'   \code{x}, given \code{y}. The formal arguments are the design matrix 
 #'   \code{y}, the regression target \code{xv} as the current canonical variable
@@ -82,21 +82,25 @@
 #' @param iter_max the maximum number of iterations to be performed. The 
 #'   procedure is terminated if either the \code{iter_tol} or the 
 #'   \code{iter_max} criterion is satisfied.
+#' @param partial_model \code{NULL} or an object of class \code{nscancor}. The 
+#'   computation can be continued from a partial model by providing an 
+#'   \code{nscancor} object (either from a previous run of this function or from
+#'   \code{\link{acor}}) and setting \code{nvar} to a value greater than the 
+#'   number of canonical variables contained in the partial model. See the
+#'   examples for an illustration.
 #' @param verbosity an integer specifying the verbosity level. Greater values 
 #'   result in more output, the default is to be quiet.
 #'   
-#' @return \code{nscancor} returns a list with the following elements: 
-#'   \item{cor}{the additional correlation explained by each pair of canonical 
-#'   variables, see \code{\link{acor}}.} \item{xcoef}{the matrix containing the 
-#'   canonical vectors related to \code{x} as its columns} 
+#' @return \code{nscancor} returns a list of class \code{nscancor} containing 
+#'   the following elements: \item{cor}{the additional correlation explained by 
+#'   each pair of canonical variables, see \code{\link{acor}}.} \item{xcoef}{the
+#'   matrix containing the canonical vectors related to \code{x} as its columns}
 #'   \item{ycoef}{analogous to \code{xcoef}} \item{xcenter}{if \code{xcenter} is
 #'   \code{TRUE} the centering vector, else the zero vector (in accordance with 
 #'   \code{cancor})} \item{ycenter}{analogous to \code{xcenter}} 
 #'   \item{xscale}{if \code{xscale} is \code{TRUE} the scaling vector, else 
-#'   FALSE } \item{yscale}{analogous to \code{xscale}}
-#'   
-#' @note Deflating the data matrices accumulates numerical errors over 
-#'   successive canonical vectors.
+#'   FALSE } \item{yscale}{analogous to \code{xscale}} \item{xp}{the deflated 
+#'   data matrix corresponding to \code{x}} \item{yp}{anologous to \code{xp}}
 #'   
 #' @references Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and Buhmann, 
 #'   J. (2007) Nonnegative CCA for Audiovisual Source Separation. In 
@@ -108,12 +112,13 @@
 #' @seealso  \code{\link{acor}}, \code{\link{cancor}}, \code{\link{scale}}
 #'   
 #' @example inst/nscancor_examples.R
-nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE, 
-                      xscale = FALSE, yscale = FALSE, nvar = min(dim(x), dim(y)),
-                      xpredict, ypredict, 
-                      cor_tol = NULL, nrestart = 10, iter_tol = 1e-3, iter_max = 30,
-                      verbosity = 0) {
-    
+nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE, 
+                     xscale = FALSE, yscale = FALSE, nvar = min(dim(x), dim(y)),
+                     xpredict, ypredict, 
+                     cor_tol = NULL, nrestart = 10, iter_tol = 1e-3, iter_max = 30,
+                     partial_model = NULL,
+                     verbosity = 0) {  
+  
     n <- nrow(x)
     dx <- ncol(x)
     dy <- ncol(y)
@@ -132,12 +137,32 @@ nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE,
     corr <- rep(0, nvar)  # additional explained correlation
     W <- matrix(0, dx, nvar)  # canonical vectors for X
     V <- matrix(0, dy, nvar)  # canonical vectors for Y
-    Qx <- matrix(0, dx, nvar)  # orthonormal basis spanned by the canonical variables X%*%W
-    Qy <- matrix(0, dy, nvar)  # orthonormal basis spanned by the canonical variables Y%*%V
-    Xp <- X  # X projected to the orthocomplement space spanned by Qx
-    Yp <- Y  # Y projected to the orthocomplement space spanned by Qy
+    Xp <- X  # deflated X
+    attr(Xp, "scaled:center") <- NULL
+    attr(Xp, "scaled:scale") <- NULL
+    Yp <- Y  # deflated Y
+    attr(Yp, "scaled:center") <- NULL
+    attr(Yp, "scaled:scale") <- NULL
+    vvs <- seq(nvar)
+
+    # start from partially completed model
+    if (!is.null(partial_model)) {
+      if (class(partial_model) != "nscancor") {
+        stop("argument 'partial_model' must be of class 'nscancor'")
+      }
+      
+      pvar <- length(partial_model$cor)  # number of canonical variables in partial model
+      if (pvar >= nvar)
+        stop("'nvar' must exceed the number of canonical variables in the partial model")
+      corr[1:pvar] <- partial_model$cor
+      W[ , 1:pvar] <- partial_model$xcoef
+      V[ , 1:pvar] <- partial_model$ycoef
+      Xp <- partial_model$xp
+      Yp <- partial_model$yp
+      vvs <- seq(pvar+1, nvar)
+    } 
     
-    for (vv in seq(nvar)) {
+    for (vv in vvs) {
         obj_opt <- -Inf
         for (rr in seq(nrestart)) {
             
@@ -162,24 +187,14 @@ nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE,
         V[ ,vv] <- v
         corr[vv] <- cor(Xp%*%w, Yp%*%v)
         
-        # update Qx and Qy
-        XtXw <- t(X)%*%(X%*%w)
-        YtYv <- t(Y)%*%(Y%*%v)
-        if (vv > 1) {
-            qx <- XtXw - Qx[ , 1:(vv-1)]%*%(t(Qx[ , 1:(vv-1)])%*%XtXw) 
-            qy <- YtYv - Qy[ , 1:(vv-1)]%*%(t(Qy[ , 1:(vv-1)])%*%YtYv) 
-        } else {
-            qx <- XtXw
-            qy <- YtYv
-        }
-        qx <- qx/normv(qx)
-        qy <- qy/normv(qy)
-        Qx[ , vv] <- qx
-        Qy[ , vv] <- qy
-        
         # deflate data matrices
+        qx <- t(Xp)%*%(X%*%w)
+        qx <- qx/normv(qx)
         Xp <- Xp - Xp%*%qx%*%t(qx)  
-        Yp <- Yp - Yp%*%qy%*%t(qy)  
+        
+        qy <- t(Yp)%*%(Y%*%v)
+        qy <- qy/normv(qy)
+        Yp <- Yp - Yp%*%qy%*%t(qy)
         
         # current additionally explained correlation is below threshold cor_tol
         if (!is.null(cor_tol) && corr[vv] < cor_tol*corr[1]) {
@@ -201,12 +216,15 @@ nscancor <- function (x, y, xcenter = TRUE, ycenter = TRUE,
     }
     
     rownames(W) <- colnames(X)
-    rownames(V) <- colnames(Y)
-    return(list(cor = corr, xcoef = W, ycoef = V,
-                xcenter = if(is.null(xcen)) rep.int(0, dx) else xcen,  # return value follows cancor interface
-                xscale = if(is.null(xsc)) FALSE else xsc,
-                ycenter = if(is.null(ycen)) rep.int(0, dy) else ycen,
-                yscale = if(is.null(ysc)) FALSE else ysc))
+    rownames(V) <- colnames(Y) 
+    nscc <- list(cor = corr, xcoef = W, ycoef = V,
+                 xcenter = if(is.null(xcen)) rep.int(0, dx) else xcen,  # return value follows cancor interface
+                 xscale = if(is.null(xsc)) FALSE else xsc,
+                 ycenter = if(is.null(ycen)) rep.int(0, dy) else ycen,
+                 yscale = if(is.null(ysc)) FALSE else ysc,
+                 xp = Xp, yp = Yp)
+    class(nscc) <- "nscancor"
+    return(nscc)
 }
 
 nscc_inner <- function(X, Xp, Y, Yp, xpredict, ypredict, vv, iter_tol, iter_max, 
