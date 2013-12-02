@@ -38,7 +38,7 @@ xpredict <- function(y, xv, vv) {
 nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar=3,
                  xpredict=xpredict, ypredict=ypredict)
 
-# continue the computation from a partial model
+# continue the computation of canonical variables from a partial model
 nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar=4,
                  xpredict=xpredict, ypredict=ypredict,
                  partial_model=nscc)
