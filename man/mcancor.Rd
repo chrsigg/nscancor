@@ -4,7 +4,8 @@
 \usage{
   mcancor(x, center = TRUE, scale_ = FALSE, nvar = NULL,
     predict, cor_tol = NULL, nrestart = 10,
-    iter_tol = 0.001, iter_max = 30, verbosity = 0)
+    iter_tol = 0.001, iter_max = 30, partial_model = NULL,
+    verbosity = 0)
 }
 \arguments{
   \item{x}{a list of numeric matrices which contain the
@@ -68,30 +69,42 @@
   \code{iter_tol} or the \code{iter_max} criterion is
   satisfied.}
 
+  \item{partial_model}{\code{NULL} or an object of class
+  \code{mcancor}. The computation can be continued from a
+  partial model by providing an \code{mcancor} object
+  (either from a previous run of this function or from
+  \code{\link{macor}}) and setting \code{nvar} to a value
+  greater than the number of canonical variables contained
+  in the partial model. See the examples for an
+  illustration.}
+
   \item{verbosity}{an integer specifying the verbosity
   level. Greater values result in more output, the default
   is to be quiet.}
 }
 \value{
-  \code{mcancor} returns a list with the following
-  elements: \item{cor}{a multi-dimensional array containing
-  the additional correlations explained by each pair of
-  canonical variables. The first two dimensions correspond
-  to the domains, and the third dimension corresponds to
-  the different canonical variables per domain (see also
+  \code{mcancor} returns a list of class \code{mcancor}
+  with the following elements: \item{cor}{a
+  multi-dimensional array containing the additional
+  correlations explained by each pair of canonical
+  variables. The first two dimensions correspond to the
+  domains, and the third dimension corresponds to the
+  different canonical variables per domain (see also
   \code{\link{macor}}).} \item{coef}{a list of matrices
   containing the canonical vectors related to each data
   domain. The canonical vectors are stored as the columns
   of each matrix.} \item{center}{the list of empirical
-  means used to center the data matrices} \item{xscale}{the
+  means used to center the data matrices} \item{scale}{the
   list of empirical standard deviations used to scale the
-  data matrices}
+  data matrices} \item{xp}{the list of deflated data
+  matrices corresponding to \code{x}}
 }
 \description{
   Performs a canonical correlation analysis (CCA) on
   multiple data domains, where constraints such as
   non-negativity or sparsity are enforced on the canonical
-  vectors.
+  vectors. The result of the analysis is returned as a list
+  of class \code{mcancor}.
 }
 \details{
   \code{mcancor} generalizes \code{\link{nscancor}} to the
@@ -124,7 +137,10 @@ generate_predict <- function(dfmax) {
 predict <- lapply(c(20, 10, 10), generate_predict)
 
 # Compute three canonical variables per domain
-mcc <- mcancor(x, predict=predict, nvar=3, verbosity = 2)
+mcc <- mcancor(x, predict=predict, nvar=2, nrestart=3, verbosity=2)
+
+# Compute another canonical variable
+mcc <- mcancor(x, predict=predict, nvar=3, nrestart=3, partial_model=mcc)
 }
 \seealso{
   \code{\link{macor}}, \code{\link{nscancor}},

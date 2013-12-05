@@ -15,7 +15,7 @@
 
 context("additional correlation")
 
-test_that("cancor equivalence", {
+test_that("cancor correlation equivalence", {
     set.seed(1)
     
     equiv <- function (n,d) {
@@ -40,14 +40,23 @@ test_that("sparse CCA equivalence", {
       return(V[2:nrow(V), ncol(V)])
     }
     scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
-    expect_equal(acor(X, scc$xcoef, Y, scc$ycoef)$cor, scc$cor)  
+    sacc <- acor(X, scc$xcoef, Y, scc$ycoef)
+    expect_equal(sacc$cor, scc$cor)  
+    expect_equal(sacc$xcoef, scc$xcoef)
+    expect_equal(sacc$ycoef, scc$ycoef)
+    expect_equal(sacc$xcenter, scc$xcenter)
+    expect_equal(sacc$xscale, scc$xscale)
+    expect_equal(sacc$ycenter, scc$ycenter)
+    expect_equal(sacc$yscale, scc$yscale)
+    expect_equal(sacc$xp, scc$xp)
+    expect_equal(sacc$yp, scc$yp)
   }
   equiv(10, 5)
   equiv(10, 10)
   equiv(5, 10)
 })
 
-test_that("non-negative sparse CCA equivalence", {
+test_that("non-negative sparse CCA correlation equivalence", {
   set.seed(1)
   
   equiv <- function (n,d) {

@@ -15,20 +15,20 @@
 
 context("multi-domain additional correlation")
 
-test_that("cancor equivalence", {
+test_that("cancor correlation equivalence", {
     set.seed(1)
     
     equiv <- function (n,d) {
       X <- matrix(runif(n*d), n)
       Y <- matrix(runif(n*d), n)
       cc <- cancor(X, Y)
-      expect_equal(macor(list(X, Y), list(cc$xcoef, cc$ycoef))[1, 2, ], cc$cor)  
+      expect_equal(macor(list(X, Y), list(cc$xcoef, cc$ycoef))$cor[1, 2, ], cc$cor)  
     }
     equiv(20, 5)
     equiv(10, 9)
 })
 
-test_that("sparse CCA equivalence", {
+test_that("sparse CCA correlation equivalence", {
   set.seed(1)
   
   equiv <- function (n,d) {
@@ -40,7 +40,7 @@ test_that("sparse CCA equivalence", {
       return(V[2:nrow(V), ncol(V)])
     }
     scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nvar=2)
-    expect_equal(macor(list(X, Y), list(scc$xcoef, scc$ycoef))[1, 2, ], scc$cor)  
+    expect_equal(macor(list(X, Y), list(scc$xcoef, scc$ycoef))$cor[1, 2, ], scc$cor)  
   }
   equiv(10, 5)
   equiv(10, 10)
@@ -59,7 +59,12 @@ test_that("sparse mCCA equivalence", {
     }
     predict <- list(pred, pred, pred)
     mcc <- mcancor(X, predict=predict, nvar=2)
-    expect_equal(macor(X, mcc$coef), mcc$cor)  
+    macc <- macor(X, mcc$coef)
+    expect_equal(macc$cor, mcc$cor)  
+    expect_equal(macc$coef, mcc$coef)
+    expect_equal(macc$center, mcc$center)
+    expect_equal(macc$scale, mcc$scale)
+    expect_equal(macc$xp, mcc$xp)
   }
   equiv(10, 5)
   equiv(10, 10)

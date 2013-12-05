@@ -18,7 +18,8 @@
 #' 
 #' Performs a canonical correlation analysis (CCA) on multiple data domains, 
 #' where constraints such as non-negativity or sparsity are enforced on the 
-#' canonical vectors.
+#' canonical vectors. The result
+#' of the analysis is returned as a list of class \code{mcancor}.
 #' 
 #' \code{mcancor} generalizes \code{\link{nscancor}} to the case where more than
 #' two data domains are available for an analysis. Its objective is to maximize 
@@ -65,10 +66,16 @@
 #' @param iter_max the maximum number of iterations to be performed. The 
 #'   procedure is terminated if either the \code{iter_tol} or the 
 #'   \code{iter_max} criterion is satisfied.
+#' @param partial_model \code{NULL} or an object of class \code{mcancor}. The 
+#'   computation can be continued from a partial model by providing an 
+#'   \code{mcancor} object (either from a previous run of this function or from
+#'   \code{\link{macor}}) and setting \code{nvar} to a value greater than the 
+#'   number of canonical variables contained in the partial model. See the
+#'   examples for an illustration.
 #' @param verbosity an integer specifying the verbosity level. Greater values 
 #'   result in more output, the default is to be quiet.
 #'   
-#' @return \code{mcancor} returns a list with the following elements: 
+#' @return \code{mcancor} returns a list of class \code{mcancor} with the following elements: 
 #'   \item{cor}{a multi-dimensional array containing the additional correlations
 #'   explained by each pair of canonical variables. The first two dimensions
 #'   correspond to the domains, and the third dimension corresponds to the
@@ -76,19 +83,21 @@
 #'   \item{coef}{a list of matrices containing the canonical vectors related to 
 #'   each data domain. The canonical vectors are stored as the columns of each 
 #'   matrix.} \item{center}{the list of empirical means used to center the data
-#'   matrices} \item{xscale}{the list of empirical standard deviations used to
-#'   scale the data matrices}
+#'   matrices} \item{scale}{the list of empirical standard deviations used to
+#'   scale the data matrices} \item{xp}{the list of deflated 
+#'   data matrices corresponding to \code{x}}
 #'   
 #' @seealso  \code{\link{macor}}, \code{\link{nscancor}}, \code{\link{scale}}
 #'   
 #' @example inst/mcancor_examples.R
 mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,  
                      cor_tol = NULL, nrestart = 10, iter_tol = 1e-3, iter_max = 30,
-                     verbosity = 0) {
+                     partial_model = NULL, verbosity = 0) {
   
   m <- length(x)  # number of domains
   
   X <- list();  # data sets
+  Xp <- list();  # deflated data sets
   cen <- list(); sc <- list();  # centering and scaling
   dx <- numeric(m)  # dimensionality of data domain
   for (mm in 1:m) {
@@ -105,6 +114,10 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
     if(any(scal == 0))
       stop(paste("cannot rescale a constant column to unit variance in domain", mm))
     sc[[mm]] <- if(is.null(scal)) FALSE else scal
+    
+    Xp[[mm]] <- X[[mm]]
+    attr(Xp[[mm]], "scaled:center") <- NULL
+    attr(Xp[[mm]], "scaled:scale") <- NULL
   }
   
   n <- nrow(X[[1]])  # number of observations
@@ -113,15 +126,32 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
   
   corr <- array(NA, dim = c(m, m, nvar))  # additional explained correlation
   W <- list()  # canonical vectors 
-  Q <- list()  # orthonormal basis spanned by the canonical variables
   for (mm in 1:m) {
     W[[mm]] <- matrix(NA, dx[mm], nvar)
     rownames(W[[mm]]) <- colnames(X[[mm]])
-    Q[[mm]] <- matrix(NA, dx[mm], nvar)
   }
-  Xp <- X  # X projected to the orthocomplement space spanned by Q
+  vvs <- seq(nvar)
   
-  for (vv in seq(nvar)) {
+  # start from partially completed model
+  if (!is.null(partial_model)) {
+    if (class(partial_model) != "mcancor") {
+      stop("argument 'partial_model' must be of class 'mcancor'")
+    }
+    
+    pvar <- dim(partial_model$cor)[3]  # number of canonical variables in partial model
+    if (pvar >= nvar)
+      stop("'nvar' must exceed the number of canonical variables in the partial model")
+    corr[ , , 1:pvar] <- partial_model$cor
+    
+    for (mm in 1:m) {
+      W[[mm]][ , 1:pvar] <- partial_model$coef[[mm]]
+    }
+    
+    Xp <- partial_model$xp
+    vvs <- seq(pvar+1, nvar)
+  }
+  
+  for (vv in vvs) {
     obj_opt <- -Inf
     for (rr in seq(nrestart)) {
       
@@ -140,25 +170,15 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
       }
     }
     
-    corr[ , , vv] <- cor(XpW, XpW)
-    
+    corr[ , , vv] <- cor(XpW, XpW)  
     for (mm in 1:m) {
       w <- w_opt[[mm]]
       W[[mm]][ , vv] <- w
-      rownames(W[[mm]]) <- colnames(X[[mm]])
-      
-      # update Q 
-      XtXw <- t(X[[mm]])%*%(X[[mm]]%*%w)
-      if (vv > 1) {
-        q <- XtXw - Q[[mm]][ , 1:(vv-1)]%*%(t(Q[[mm]][ , 1:(vv-1)])%*%XtXw) 
-      } else {
-        q <- XtXw
-      }
-      q <- q/normv(q)
-      Q[[mm]][ , vv] <- q
       
       # deflate data matrix
-      Xp[[mm]] <- Xp[[mm]] - Xp[[mm]]%*%q%*%t(q)  
+      q <- t(Xp[[mm]])%*%(X[[mm]]%*%w)
+      q <- q/normv(q)
+      Xp[[mm]] <- Xp[[mm]] - Xp[[mm]]%*%q%*%t(q) 
     }
     
     # current additionally explained correlation is below threshold cor_tol
@@ -188,7 +208,9 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
     }
   }
   
-  return(list(cor = corr, coef = W, center = cen, scale = sc))
+  mcc <- list(cor = corr, coef = W, center = cen, scale = sc, xp = Xp)
+  class(mcc) <- "mcancor"
+  return(mcc)
 }
 
 mcc_inner <- function(X, Xp, dx, predict, vv, iter_tol, iter_max, verbosity) {

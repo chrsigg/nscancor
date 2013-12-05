@@ -61,3 +61,26 @@ test_that("rank of matrix smaller than nvar", {
     expect_true(length(nscc$cor) == 1)
 })
 
+test_that("sequential variable computation", {
+  set.seed(1)
+  d <- 5
+  n <- 10
+  X <- matrix(rnorm(n*d), n)
+  Y <- matrix(rnorm(n*d), n)
+  
+  cc <- cancor(X, Y)
+  xpredict = function(Y, x, cc) {
+    return(ginv(Y)%*%x)
+  } 
+  nscc <- NULL
+  for (pp in seq_along(cc$cor)) {
+    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nvar=pp,
+                     iter_tol=1e-10, iter_max=500, partial_model=nscc)
+  }
+  
+  expect_true(normv(cc$cor - nscc$cor) < 1e-3)
+  expect_true(norm(abs(cc$xcoef) - abs(nscc$xcoef), "F") < 1e-3)
+  expect_true(norm(abs(cc$ycoef) - abs(nscc$ycoef), "F") < 1e-3)
+  expect_true(normv(cc$xcenter - nscc$xcenter) < 1e-3)
+  expect_true(normv(cc$ycenter - nscc$ycenter) < 1e-3)
+})

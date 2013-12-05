@@ -2,15 +2,15 @@
 \alias{macor}
 \title{Multi-Domain Additional Explained Correlation}
 \usage{
-  macor(x, w, center = TRUE, scale_ = FALSE)
+  macor(x, coef, center = TRUE, scale_ = FALSE)
 }
 \arguments{
   \item{x}{a list of numeric matrices which contain the
   data from the different domains}
 
-  \item{w}{a list of matrices containing the canonical
-  vectors related to each data domain. The canonical
-  vectors must be stored as the columns of each matrix.}
+  \item{coef}{a list of matrices containing the canonical
+  vectors related to each data domain. Each matrix contains
+  the respective canonical vectors as its columns.}
 
   \item{center}{a list of logical values indicating whether
   the empirical mean of (each column of) the corresponding
@@ -31,11 +31,18 @@
   \code{\link{scale}}.}
 }
 \value{
-  \code{macor} returns a multi-dimensional array containing
-  the additional correlations explained by each pair of
-  canonical variables. The first two dimensions correspond
-  to the domains, and the third dimension corresponds to
-  the different canonical variables per domain.
+  \code{macor} returns a list of class \code{mcancor} with
+  the following elements: \item{cor}{a multi-dimensional
+  array containing the additional correlations explained by
+  each pair of canonical variables. The first two
+  dimensions correspond to the domains, and the third
+  dimension corresponds to the different canonical
+  variables per domain.} \item{coef}{copied from the input
+  arguments} \item{center}{the list of empirical means used
+  to center the data matrices} \item{scale}{the list of
+  empirical standard deviations used to scale the data
+  matrices}\item{xp}{the list of deflated data matrices
+  corresponding to \code{x}}
 }
 \description{
   \code{macor} generalizes \code{\link{acor}} to the case

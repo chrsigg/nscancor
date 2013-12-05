@@ -40,11 +40,11 @@
   \code{acor} returns a list of class \code{nscancor}
   containing the following elements: \item{cor}{the
   additional correlation explained by each pair of
-  canonical variables} \item{xcoef, xcenter, xscale}{copied
-  from the input arguments} \item{ycoef, ycenter,
-  yscale}{copied from the input arguments} \item{xp}{the
-  deflated data matrix corresponding to \code{x}}
-  \item{yp}{anologous to \code{xp}}
+  canonical variables} \item{xcoef}{copied from the input
+  arguments} \item{ycoef, ycenter, yscale}{copied from the
+  input arguments} \item{xp}{the deflated data matrix
+  corresponding to \code{x}} \item{yp}{anologous to
+  \code{xp}}
 }
 \description{
   \code{acor} computes the additional standard correlation

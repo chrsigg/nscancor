@@ -54,8 +54,8 @@
 #'   
 #' @return \code{acor} returns a list of class \code{nscancor} containing the 
 #'   following elements: \item{cor}{the additional correlation explained by each
-#'   pair of canonical variables} \item{xcoef, xcenter, xscale}{copied from the
-#'   input arguments} \item{ycoef, ycenter, yscale}{copied from the input
+#'   pair of canonical variables} \item{xcoef}{copied from the
+#'   input arguments}  \item{ycoef, ycenter, yscale}{copied from the input
 #'   arguments} \item{xp}{the deflated data matrix corresponding to \code{x}}
 #'   \item{yp}{anologous to \code{xp}}
 acor <- function(x, xcoef, y, ycoef, xcenter = TRUE, ycenter = TRUE, 
@@ -65,14 +65,27 @@ acor <- function(x, xcoef, y, ycoef, xcenter = TRUE, ycenter = TRUE,
   dy <- ncol(y)
   ncomp <- ncol(xcoef)
   
-  X <- scale(x, center = xcenter, scale = xscale)
-  Y <- scale(y, center = ycenter, scale = yscale)
+  X <- as.matrix(x)
+  X <- scale(X, center = xcenter, scale = xscale)
+  xcen <- attr(X, "scaled:center")
+  xsc <- attr(X, "scaled:scale")
+  Y <- as.matrix(y)
+  Y <- scale(Y, center = ycenter, scale = yscale)
+  ycen <- attr(Y, "scaled:center")
+  ysc <- attr(Y, "scaled:scale")
+  if(any(xsc == 0) || any(ysc == 0))
+    stop("cannot rescale a constant/zero column to unit variance")
+  
   W <- xcoef
   V <- ycoef
   
   corr <- rep(0, ncomp)  # additional explained correlation
-  Xp <- X  # X projected to the orthocomplement space spanned by Qx
-  Yp <- Y  # Y projected to the orthocomplement space spanned by Qy
+  Xp <- X  # deflated X
+  attr(Xp, "scaled:center") <- NULL
+  attr(Xp, "scaled:scale") <- NULL
+  Yp <- Y  # deflated Y
+  attr(Yp, "scaled:center") <- NULL
+  attr(Yp, "scaled:scale") <- NULL
   for (cc in seq_len(ncomp)) {
     w <- W[ ,cc]
     v <- V[ ,cc]
@@ -89,8 +102,10 @@ acor <- function(x, xcoef, y, ycoef, xcenter = TRUE, ycenter = TRUE,
   }
   
   nscc <- list(cor = corr, xcoef = xcoef, ycoef = ycoef,
-               xcenter = xcenter, xscale = xscale,
-               ycenter = ycenter, yscale = yscale,
+               xcenter = if(is.null(xcen)) rep.int(0, dx) else xcen,  # return value follows cancor interface
+               xscale = if(is.null(xsc)) FALSE else xsc,
+               ycenter = if(is.null(ycen)) rep.int(0, dy) else ycen,
+               yscale = if(is.null(ysc)) FALSE else ysc,
                xp = Xp, yp = Yp)
   class(nscc) <- "nscancor"
   return(nscc)

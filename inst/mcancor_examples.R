@@ -22,4 +22,7 @@ generate_predict <- function(dfmax) {
 predict <- lapply(c(20, 10, 10), generate_predict)
 
 # Compute three canonical variables per domain
-mcc <- mcancor(x, predict=predict, nvar=3, verbosity = 2)
+mcc <- mcancor(x, predict=predict, nvar=2, nrestart=3, verbosity=2)
+
+# Compute another canonical variable
+mcc <- mcancor(x, predict=predict, nvar=3, nrestart=3, partial_model=mcc)
