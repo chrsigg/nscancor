@@ -2,7 +2,7 @@ Package: nscancor
 Authors@R: c( person("Christian", "Sigg", email =
     "christian@sigg-iten.ch", role = c("aut", "cre")), person("R
     Core team", role = "aut"))
-Version: 0.4
+Version: 0.5
 Date: 2013-11-16
 Title: Non-Negative and Sparse CCA
 Description: This package implements two algorithms for canonical correlation
