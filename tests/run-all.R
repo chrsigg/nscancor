@@ -18,4 +18,4 @@ library(MASS)
 library(glmnet)
 library(nscancor)
 
-test_package("nscancor")
+test_check("nscancor")
