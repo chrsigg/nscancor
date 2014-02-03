@@ -47,7 +47,11 @@ test_that("corr tolerance early stopping", {
       return(ginv(Y)%*%x)
     } 
     nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, cor_tol=0.3)
-    expect_true(nscc$cor[length(nscc$cor)]/nscc$cor[1] >= 0.3)
+    ncomp <- length(nscc$cor)
+    
+    expect_true(nscc$cor[ncomp]/nscc$cor[1] >= 0.3)
+    expect_true(ncol(nscc$xcoef) == ncomp)
+    expect_true(ncol(nscc$ycoef) == ncomp)
 })
  
 test_that("rank of matrix smaller than nvar", {
@@ -59,6 +63,8 @@ test_that("rank of matrix smaller than nvar", {
     } 
     nscc <- nscancor(X, X, xpredict=xpredict, ypredict=xpredict, nvar = 2)
     expect_true(length(nscc$cor) == 1)
+    expect_true(ncol(nscc$xcoef) == 1)
+    expect_true(ncol(nscc$ycoef) == 1)
 })
 
 test_that("sequential variable computation", {

@@ -2,8 +2,8 @@ Package: nscancor
 Authors@R: c( person("Christian", "Sigg", email =
     "christian@sigg-iten.ch", role = c("aut", "cre")), person("R
     Core team", role = "aut"))
-Version: 0.5
-Date: 2013-12-05
+Version: 0.6
+Date: 2014-02-03
 Title: Non-Negative and Sparse CCA
 Description: This package implements two algorithms for canonical correlation
     analysis (CCA) that are based on iterated regression
@@ -23,13 +23,5 @@ Suggests:
     glmnet,
     MASS,
     PMA,
-    testthat,
+    testthat (>= 0.8),
     roxygen2
-Collate:
-    'nscancor-package.R'
-    'nscancor.R'
-    'cardinality.R'
-    'normv.R'
-    'acor.R'
-    'mcancor.R'
-    'macor.R'

@@ -62,8 +62,8 @@
 #'   \code{x} or \code{y} is fully deflated.
 #' @param xpredict the regression function to predict the canonical variable for
 #'   \code{x}, given \code{y}. The formal arguments are the design matrix 
-#'   \code{y}, the regression target \code{xv} as the current canonical variable
-#'   for \code{x}, and \code{vv} as a counter of the current pair of canonical 
+#'   \code{y}, the regression target \code{xc} as the current canonical variable
+#'   for \code{x}, and \code{cc} as a counter of the current pair of canonical 
 #'   variables (e.g. for enforcing different constraints for different canonical
 #'   vectors). See the examples for an illustration.
 #' @param ypredict analogous to \code{xpredict}
@@ -143,7 +143,7 @@ nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE,
     Yp <- Y  # deflated Y
     attr(Yp, "scaled:center") <- NULL
     attr(Yp, "scaled:scale") <- NULL
-    vvs <- seq(nvar)
+    ccs <- seq(nvar)
 
     # start from partially completed model
     if (!is.null(partial_model)) {
@@ -159,14 +159,14 @@ nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE,
       V[ , 1:pvar] <- partial_model$ycoef
       Xp <- partial_model$xp
       Yp <- partial_model$yp
-      vvs <- seq(pvar+1, nvar)
+      ccs <- seq(pvar+1, nvar)
     } 
     
-    for (vv in vvs) {
+    for (cc in ccs) {
         obj_opt <- -Inf
         for (rr in seq(nrestart)) {
             
-            res <- nscc_inner(X, Xp, Y, Yp, xpredict, ypredict, vv, iter_tol, 
+            res <- nscc_inner(X, Xp, Y, Yp, xpredict, ypredict, cc, iter_tol, 
                          iter_max, verbosity)               
             
             # keep solution with maximum objective
@@ -176,16 +176,24 @@ nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE,
                 v_opt <- res$v
             }
             if (verbosity > 0) {
-                print(paste("canonical variable ", vv, ": ",
+                print(paste("canonical variable ", cc, ": ",
                             "maximum objective is ", format(obj_opt, digits = 4),
                             " at random restart ", rr-1, sep = ""))
             }
         }
         w <- w_opt  
         v <- v_opt
-        W[ ,vv] <- w
-        V[ ,vv] <- v
-        corr[vv] <- cor(Xp%*%w, Yp%*%v)
+        W[ ,cc] <- w
+        V[ ,cc] <- v
+        corr[cc] <- cor(Xp%*%w, Yp%*%v)
+        
+        # early stopping at previous component due to correlation threshold
+        if (!is.null(cor_tol) && corr[cc] < cor_tol*corr[1]) {
+            corr <- corr[1:(cc-1)]
+            W <- W[ , 1:(cc-1), drop=FALSE]
+            V <- V[ , 1:(cc-1), drop=FALSE]
+            break
+        }    
         
         # deflate data matrices
         qx <- t(Xp)%*%(X%*%w)
@@ -196,21 +204,14 @@ nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE,
         qy <- qy/normv(qy)
         Yp <- Yp - Yp%*%qy%*%t(qy)
         
-        # current additionally explained correlation is below threshold cor_tol
-        if (!is.null(cor_tol) && corr[vv] < cor_tol*corr[1]) {
-            corr <- corr[1:(vv-1)]
-            W <- W[ , 1:(vv-1), drop=FALSE]
-            V <- V[ , 1:(vv-1), drop=FALSE]
-            break
-        }    
-        # at least one data matrix is fully deflated
-        else if (vv < nvar && (all(abs(Xp) < 1e-14) || all(abs(Yp) < 1e-14))) { 
+        # early stopping at current component due to fully deflated data matrix
+        if (cc < nvar && (all(abs(Xp) < 1e-14) || all(abs(Yp) < 1e-14))) { 
             if (verbosity > 0) {
                 print("at least one data matrix is fully deflated, less than 'nvar' pairs of variables could be computed")            
             }
-            corr <- corr[1:vv]
-            W <- W[ , 1:vv, drop=FALSE]
-            V <- V[ , 1:vv, drop=FALSE]
+            corr <- corr[1:cc]
+            W <- W[ , 1:cc, drop=FALSE]
+            V <- V[ , 1:cc, drop=FALSE]
             break
         }
     }
@@ -227,7 +228,7 @@ nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE,
     return(nscc)
 }
 
-nscc_inner <- function(X, Xp, Y, Yp, xpredict, ypredict, vv, iter_tol, iter_max, 
+nscc_inner <- function(X, Xp, Y, Yp, xpredict, ypredict, cc, iter_tol, iter_max, 
                   verbosity) {
     
     n <- nrow(X)
@@ -238,10 +239,10 @@ nscc_inner <- function(X, Xp, Y, Yp, xpredict, ypredict, vv, iter_tol, iter_max,
     # functions return non-negative vectors
     w <- rnorm(dx);
     v <- rnorm(dy);
-    if (all(ypredict(Xp, Yp[ , 1], vv) >= 0)) {
+    if (all(ypredict(Xp, Yp[ , 1], cc) >= 0)) {
         w <- abs(w)
     }
-    if (all(xpredict(Yp, Xp[ , 1], vv) >= 0)) {
+    if (all(xpredict(Yp, Xp[ , 1], cc) >= 0)) {
         v <- abs(v)
     }
     w <- w/normv(Xp%*%w)     
@@ -256,12 +257,12 @@ nscc_inner <- function(X, Xp, Y, Yp, xpredict, ypredict, vv, iter_tol, iter_max,
         }
         obj_old <- obj
         
-        w <- ypredict(Xp, Yp%*%v, vv)
+        w <- ypredict(Xp, Yp%*%v, cc)
         if (all(w == 0))
             stop("w collapsed to the zero vector, try relaxing the constraints")
         w <- w/normv(Xp%*%w)
         
-        v <- xpredict(Yp, Xp%*%w, vv)
+        v <- xpredict(Yp, Xp%*%w, cc)
         if (all(v == 0))
             stop("v collapsed to the zero vector, try relaxing the constraints")
         v <- v/normv(Yp%*%v)

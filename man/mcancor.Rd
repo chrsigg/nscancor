@@ -2,10 +2,9 @@
 \alias{mcancor}
 \title{Non-Negative and Sparse Multi-Domain CCA}
 \usage{
-  mcancor(x, center = TRUE, scale_ = FALSE, nvar = NULL,
-    predict, cor_tol = NULL, nrestart = 10,
-    iter_tol = 0.001, iter_max = 30, partial_model = NULL,
-    verbosity = 0)
+mcancor(x, center = TRUE, scale_ = FALSE, nvar = min(sapply(x, dim)),
+  predict, cor_tol = NULL, nrestart = 10, iter_tol = 0.001,
+  iter_max = 30, partial_model = NULL, verbosity = 0)
 }
 \arguments{
   \item{x}{a list of numeric matrices which contain the
@@ -38,9 +37,9 @@
   the sum of the canonical variables of all other domains.
   The formal arguments for each regression function are the
   design matrix \code{x} corresponding to the data from the
-  current domain, the regression target \code{sv} as the
+  current domain, the regression target \code{sc} as the
   sum of the canonical variables for all other domains, and
-  \code{vv} as a counter of which canonical variable is
+  \code{cc} as a counter of which canonical variable is
   currently computed (e.g. for enforcing different
   constraints for subsequent canonical vectors of a given
   domain).  See the examples for an illustration.}
@@ -83,34 +82,33 @@
   is to be quiet.}
 }
 \value{
-  \code{mcancor} returns a list of class \code{mcancor}
-  with the following elements: \item{cor}{a
-  multi-dimensional array containing the additional
-  correlations explained by each pair of canonical
-  variables. The first two dimensions correspond to the
-  domains, and the third dimension corresponds to the
-  different canonical variables per domain (see also
-  \code{\link{macor}}).} \item{coef}{a list of matrices
-  containing the canonical vectors related to each data
-  domain. The canonical vectors are stored as the columns
-  of each matrix.} \item{center}{the list of empirical
-  means used to center the data matrices} \item{scale}{the
-  list of empirical standard deviations used to scale the
-  data matrices} \item{xp}{the list of deflated data
-  matrices corresponding to \code{x}}
+\code{mcancor} returns a list of class \code{mcancor} with
+the following elements: \item{cor}{a multi-dimensional
+array containing the additional correlations explained by
+each pair of canonical variables. The first two dimensions
+correspond to the domains, and the third dimension
+corresponds to the different canonical variables per domain
+(see also \code{\link{macor}}).} \item{coef}{a list of
+matrices containing the canonical vectors related to each
+data domain. The canonical vectors are stored as the
+columns of each matrix.} \item{center}{the list of
+empirical means used to center the data matrices}
+\item{scale}{the list of empirical standard deviations used
+to scale the data matrices} \item{xp}{the list of deflated
+data matrices corresponding to \code{x}}
 }
 \description{
-  Performs a canonical correlation analysis (CCA) on
-  multiple data domains, where constraints such as
-  non-negativity or sparsity are enforced on the canonical
-  vectors. The result of the analysis is returned as a list
-  of class \code{mcancor}.
+Performs a canonical correlation analysis (CCA) on multiple
+data domains, where constraints such as non-negativity or
+sparsity are enforced on the canonical vectors. The result
+of the analysis is returned as a list of class
+\code{mcancor}.
 }
 \details{
-  \code{mcancor} generalizes \code{\link{nscancor}} to the
-  case where more than two data domains are available for
-  an analysis. Its objective is to maximize the sum of all
-  pairwise correlations of the canonical variables.
+\code{mcancor} generalizes \code{\link{nscancor}} to the
+case where more than two data domains are available for an
+analysis. Its objective is to maximize the sum of all
+pairwise correlations of the canonical variables.
 }
 \examples{
 library(glmnet)
@@ -127,8 +125,8 @@ x <- with(breastdata,
 generate_predict <- function(dfmax) {
   force(dfmax)
   return(
-    function(x, sv, vv) {
-      en <- glmnet(x, sv, alpha=0.05, intercept=FALSE, dfmax=dfmax)
+    function(x, sc, cc) {
+      en <- glmnet(x, sc, alpha=0.05, intercept=FALSE, dfmax=dfmax)
       W <- coef(en)
       return(W[2:nrow(W), ncol(W)])
     }
@@ -136,14 +134,15 @@ generate_predict <- function(dfmax) {
 }
 predict <- lapply(c(20, 10, 10), generate_predict)
 
-# Compute three canonical variables per domain
-mcc <- mcancor(x, predict=predict, nvar=2, nrestart=3, verbosity=2)
+# Compute two canonical variables per domain (this can take up to a minute on 
+# a slow machine)
+\dontrun{mcc <- mcancor(x, predict=predict, nvar=2, verbosity=2)}
 
 # Compute another canonical variable
-mcc <- mcancor(x, predict=predict, nvar=3, nrestart=3, partial_model=mcc)
+\dontrun{mcc <- mcancor(x, predict=predict, nvar=3, partial_model=mcc)}
 }
 \seealso{
-  \code{\link{macor}}, \code{\link{nscancor}},
-  \code{\link{scale}}
+\code{\link{macor}}, \code{\link{nscancor}},
+\code{\link{scale}}
 }
 

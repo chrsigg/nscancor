@@ -8,11 +8,11 @@ set.seed(1)
 # Unconstrained CCA, produces identical results to calling 
 # cancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid)
 
-ypredict <- function(x, yv, vv) {
-  return(ginv(x)%*%yv)
+ypredict <- function(x, yc, cc) {
+  return(ginv(x)%*%yc)
 }
-xpredict <- function(y, xv, vv) {
-  return(ginv(y)%*%xv)
+xpredict <- function(y, xc, cc) {
+  return(ginv(y)%*%xc)
 } 
 cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
                ypredict=ypredict)
@@ -24,14 +24,14 @@ cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict,
 # canonical variables.
 
 dfmax_w <- c(40, 15, 10, 10)
-ypredict <- function(x, yv, vv) {
-  en <- glmnet(x, yv, alpha=0.5, intercept=FALSE, dfmax=dfmax_w[vv], lower.limits=0)
+ypredict <- function(x, yc, cc) {
+  en <- glmnet(x, yc, alpha=0.5, intercept=FALSE, dfmax=dfmax_w[cc], lower.limits=0)
   W <- coef(en)
   return(W[2:nrow(W), ncol(W)])
 }
 dfmax_v <- c(7, 5, 5, 3)
-xpredict <- function(y, xv, vv) {
-  en <- glmnet(y, xv, alpha=0.5, intercept=FALSE, dfmax=dfmax_v[vv])
+xpredict <- function(y, xc, cc) {
+  en <- glmnet(y, xc, alpha=0.5, intercept=FALSE, dfmax=dfmax_v[cc])
   V <- coef(en)
   return(V[2:nrow(V), ncol(V)])
 }

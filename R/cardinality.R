@@ -1,4 +1,4 @@
-#  Copyright 2013 Christian Sigg
+#  Copyright 2013, 2014 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@
 #' Cardinality of Column Vectors
 #' 
 #' Computes the cardinality (the sum of non-zero elements) of each column of 
-#' the matrix \eqn{\mathbf{W}}{W}.
+#' the matrix \eqn{\mathbf{w}}{w}.
 #' 
 #' @export
-#' @param W a numeric matrix, e.g. \code{xcoef} as returned by \code{\link{nscancor}}
-cardinality <- function(W) {
-    return(colSums(abs(as.matrix(W)) > 0))
+#' @param w a numeric matrix, e.g. \code{xcoef} as returned by \code{\link{nscancor}}
+cardinality <- function(w) {
+    return(colSums(abs(as.matrix(w)) > 0))
 }

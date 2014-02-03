@@ -48,10 +48,13 @@ test_that("corr tolerance early stopping", {
     
     cor_trsh <- function(cor_tol) {
       mcc <- mcancor(X, predict=list(pred, pred, pred), cor_tol=cor_tol)
+      m <- length(X)
       nvar <- ncol(mcc$coef[[1]])
+      
       sum_corr_np <- sum(mcc$cor[ , , nvar] - diag(3))/2
       sum_corr_1 <- sum(mcc$cor[ , , 1] - diag(3))/2
       expect_true(sum_corr_np/sum_corr_1 >= cor_tol)  
+      expect_true(all(sapply(mcc$coef, ncol) == rep(nvar, m)))
     }
     cor_trsh(0)
     cor_trsh(0.6)
@@ -66,7 +69,9 @@ test_that("rank of matrix smaller than nvar", {
       return(ginv(Y)%*%x)
     } 
     mcc <- mcancor(list(X, X), predict=list(pred, pred), nvar = 2)
+    
     expect_true(dim(mcc$cor)[3] == 1)
+    expect_true(all(sapply(mcc$coef, ncol) == rep(1, 2)))
 })
 
 test_that("sequential variable computation", {

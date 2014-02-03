@@ -2,11 +2,10 @@
 \alias{nscancor}
 \title{Non-Negative and Sparse CCA}
 \usage{
-  nscancor(x, y, xcenter = TRUE, ycenter = TRUE,
-    xscale = FALSE, yscale = FALSE,
-    nvar = min(dim(x), dim(y)), xpredict, ypredict,
-    cor_tol = NULL, nrestart = 10, iter_tol = 0.001,
-    iter_max = 30, partial_model = NULL, verbosity = 0)
+nscancor(x, y, xcenter = TRUE, ycenter = TRUE, xscale = FALSE,
+  yscale = FALSE, nvar = min(dim(x), dim(y)), xpredict, ypredict,
+  cor_tol = NULL, nrestart = 10, iter_tol = 0.001, iter_max = 30,
+  partial_model = NULL, verbosity = 0)
 }
 \arguments{
   \item{x}{a numeric matrix which provides the data from
@@ -41,8 +40,8 @@
   \item{xpredict}{the regression function to predict the
   canonical variable for \code{x}, given \code{y}. The
   formal arguments are the design matrix \code{y}, the
-  regression target \code{xv} as the current canonical
-  variable for \code{x}, and \code{vv} as a counter of the
+  regression target \code{xc} as the current canonical
+  variable for \code{x}, and \code{cc} as a counter of the
   current pair of canonical variables (e.g. for enforcing
   different constraints for different canonical vectors).
   See the examples for an illustration.}
@@ -86,57 +85,55 @@
   is to be quiet.}
 }
 \value{
-  \code{nscancor} returns a list of class \code{nscancor}
-  containing the following elements: \item{cor}{the
-  additional correlation explained by each pair of
-  canonical variables, see \code{\link{acor}}.}
-  \item{xcoef}{the matrix containing the canonical vectors
-  related to \code{x} as its columns}
-  \item{ycoef}{analogous to \code{xcoef}} \item{xcenter}{if
-  \code{xcenter} is \code{TRUE} the centering vector, else
-  the zero vector (in accordance with \code{cancor})}
-  \item{ycenter}{analogous to \code{xcenter}}
-  \item{xscale}{if \code{xscale} is \code{TRUE} the scaling
-  vector, else FALSE } \item{yscale}{analogous to
-  \code{xscale}} \item{xp}{the deflated data matrix
-  corresponding to \code{x}} \item{yp}{anologous to
-  \code{xp}}
+\code{nscancor} returns a list of class \code{nscancor}
+containing the following elements: \item{cor}{the
+additional correlation explained by each pair of canonical
+variables, see \code{\link{acor}}.} \item{xcoef}{the matrix
+containing the canonical vectors related to \code{x} as its
+columns} \item{ycoef}{analogous to \code{xcoef}}
+\item{xcenter}{if \code{xcenter} is \code{TRUE} the
+centering vector, else the zero vector (in accordance with
+\code{cancor})} \item{ycenter}{analogous to \code{xcenter}}
+\item{xscale}{if \code{xscale} is \code{TRUE} the scaling
+vector, else FALSE } \item{yscale}{analogous to
+\code{xscale}} \item{xp}{the deflated data matrix
+corresponding to \code{x}} \item{yp}{anologous to
+\code{xp}}
 }
 \description{
-  Performs a canonical correlation analysis (CCA) where
-  constraints such as non-negativity or sparsity are
-  enforced on the canonical vectors. The result of the
-  analysis is returned as a list of class \code{nscancor},
-  which contains a superset of the elements returned by
-  \code{\link{cancor}}.
+Performs a canonical correlation analysis (CCA) where
+constraints such as non-negativity or sparsity are enforced
+on the canonical vectors. The result of the analysis is
+returned as a list of class \code{nscancor}, which contains
+a superset of the elements returned by
+\code{\link{cancor}}.
 }
 \details{
-  \code{nscancor} computes the canonical vectors (called
-  \code{xcoef} and \code{ycoef}) using iterated regression
-  steps, where the constraints suitable for each domain are
-  enforced by choosing the avvropriate regression method.
-  See Sigg et al. (2007) for an early avvlication of the
-  principle (not yet including generalized deflation).
+\code{nscancor} computes the canonical vectors (called
+\code{xcoef} and \code{ycoef}) using iterated regression
+steps, where the constraints suitable for each domain are
+enforced by choosing the avvropriate regression method. See
+Sigg et al. (2007) for an early avvlication of the
+principle (not yet including generalized deflation).
 
-  Because constrained canonical vectors no longer
-  correspond to true eigenvectors of the cross-covariance
-  matrix and are usually not pairwise conjugate (i.e. the
-  canonical variables are not uncorrelated), special
-  attention needs to be paid when computing more than a
-  single pair of canonical vectors. \code{nscancor}
-  implements a generalized deflation (GD) scheme which
-  builds on GD for PCA as proposed by Mackey (2009). For
-  each domain, a basis of the space spanned by the previous
-  canonical variables is computed. Then, the correlation of
-  the current pair of canonical variables is maximized
-  after projecting each current canonical vector to the
-  ortho-complement space of its respective basis. This
-  procedure maximizes the additional correlation not
-  explained by previous canonical variables, and is
-  identical to standard CCA if the canonical vectors are
-  the eigenvectors of the cross-covariance matrix.
+Because constrained canonical vectors no longer correspond
+to true eigenvectors of the cross-covariance matrix and are
+usually not pairwise conjugate (i.e. the canonical
+variables are not uncorrelated), special attention needs to
+be paid when computing more than a single pair of canonical
+vectors. \code{nscancor} implements a generalized deflation
+(GD) scheme which builds on GD for PCA as proposed by
+Mackey (2009). For each domain, a basis of the space
+spanned by the previous canonical variables is computed.
+Then, the correlation of the current pair of canonical
+variables is maximized after projecting each current
+canonical vector to the ortho-complement space of its
+respective basis. This procedure maximizes the additional
+correlation not explained by previous canonical variables,
+and is identical to standard CCA if the canonical vectors
+are the eigenvectors of the cross-covariance matrix.
 
-  See the references for further details.
+See the references for further details.
 }
 \examples{
 library(MASS)
@@ -149,11 +146,11 @@ set.seed(1)
 # Unconstrained CCA, produces identical results to calling 
 # cancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid)
 
-ypredict <- function(x, yv, vv) {
-  return(ginv(x)\%*\%yv)
+ypredict <- function(x, yc, cc) {
+  return(ginv(x)\%*\%yc)
 }
-xpredict <- function(y, xv, vv) {
-  return(ginv(y)\%*\%xv)
+xpredict <- function(y, xc, cc) {
+  return(ginv(y)\%*\%xc)
 } 
 cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict, 
                ypredict=ypredict)
@@ -165,14 +162,14 @@ cc <- nscancor(nutrimouse$gene[ , 1:10], nutrimouse$lipid, xpredict=xpredict,
 # canonical variables.
 
 dfmax_w <- c(40, 15, 10, 10)
-ypredict <- function(x, yv, vv) {
-  en <- glmnet(x, yv, alpha=0.5, intercept=FALSE, dfmax=dfmax_w[vv], lower.limits=0)
+ypredict <- function(x, yc, cc) {
+  en <- glmnet(x, yc, alpha=0.5, intercept=FALSE, dfmax=dfmax_w[cc], lower.limits=0)
   W <- coef(en)
   return(W[2:nrow(W), ncol(W)])
 }
 dfmax_v <- c(7, 5, 5, 3)
-xpredict <- function(y, xv, vv) {
-  en <- glmnet(y, xv, alpha=0.5, intercept=FALSE, dfmax=dfmax_v[vv])
+xpredict <- function(y, xc, cc) {
+  en <- glmnet(y, xc, alpha=0.5, intercept=FALSE, dfmax=dfmax_v[cc])
   V <- coef(en)
   return(V[2:nrow(V), ncol(V)])
 }
@@ -185,18 +182,17 @@ nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar=4,
                  partial_model=nscc)
 }
 \references{
-  Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and
-  Buhmann, J. (2007) Nonnegative CCA for Audiovisual Source
-  Separation. In \emph{Proceedings of the 2007 IEEE
-  Workshop on Machine Learning for Signal Processing} (vv.
-  253--258).
+Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and
+Buhmann, J. (2007) Nonnegative CCA for Audiovisual Source
+Separation. In \emph{Proceedings of the 2007 IEEE Workshop
+on Machine Learning for Signal Processing} (vv. 253--258).
 
-  Mackey, L. (2009) Deflation Methods for Sparse PCA. In
-  \emph{Advances in Neural Information Processing Systems}
-  (vv. 1017--1024).
+Mackey, L. (2009) Deflation Methods for Sparse PCA. In
+\emph{Advances in Neural Information Processing Systems}
+(vv. 1017--1024).
 }
 \seealso{
-  \code{\link{acor}}, \code{\link{cancor}},
-  \code{\link{scale}}
+\code{\link{acor}}, \code{\link{cancor}},
+\code{\link{scale}}
 }
 

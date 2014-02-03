@@ -12,8 +12,8 @@ x <- with(breastdata,
 generate_predict <- function(dfmax) {
   force(dfmax)
   return(
-    function(x, sv, vv) {
-      en <- glmnet(x, sv, alpha=0.05, intercept=FALSE, dfmax=dfmax)
+    function(x, sc, cc) {
+      en <- glmnet(x, sc, alpha=0.05, intercept=FALSE, dfmax=dfmax)
       W <- coef(en)
       return(W[2:nrow(W), ncol(W)])
     }
@@ -21,8 +21,9 @@ generate_predict <- function(dfmax) {
 }
 predict <- lapply(c(20, 10, 10), generate_predict)
 
-# Compute three canonical variables per domain
-mcc <- mcancor(x, predict=predict, nvar=2, nrestart=3, verbosity=2)
+# Compute two canonical variables per domain (this can take up to a minute on 
+# a slow machine)
+\dontrun{mcc <- mcancor(x, predict=predict, nvar=2, verbosity=2)}
 
 # Compute another canonical variable
-mcc <- mcancor(x, predict=predict, nvar=3, nrestart=3, partial_model=mcc)
+\dontrun{mcc <- mcancor(x, predict=predict, nvar=3, partial_model=mcc)}

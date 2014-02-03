@@ -46,8 +46,8 @@
 #' @param predict a list of regression functions to predict the sum of the 
 #'   canonical variables of all other domains. The formal arguments for each 
 #'   regression function are the design matrix \code{x} corresponding to the 
-#'   data from the current domain, the regression target \code{sv} as the sum of
-#'   the canonical variables for all other domains, and \code{vv} as a counter 
+#'   data from the current domain, the regression target \code{sc} as the sum of
+#'   the canonical variables for all other domains, and \code{cc} as a counter 
 #'   of which canonical variable is currently computed (e.g. for enforcing 
 #'   different constraints for subsequent canonical vectors of a given domain). 
 #'   See the examples for an illustration.
@@ -90,9 +90,9 @@
 #' @seealso  \code{\link{macor}}, \code{\link{nscancor}}, \code{\link{scale}}
 #'   
 #' @example inst/mcancor_examples.R
-mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,  
-                     cor_tol = NULL, nrestart = 10, iter_tol = 1e-3, iter_max = 30,
-                     partial_model = NULL, verbosity = 0) {
+mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = min(sapply(x, dim)), 
+                     predict, cor_tol = NULL, nrestart = 10, iter_tol = 1e-3, 
+                     iter_max = 30, partial_model = NULL, verbosity = 0) {
   
   m <- length(x)  # number of domains
   
@@ -130,7 +130,7 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
     W[[mm]] <- matrix(NA, dx[mm], nvar)
     rownames(W[[mm]]) <- colnames(X[[mm]])
   }
-  vvs <- seq(nvar)
+  ccs <- seq(nvar)
   
   # start from partially completed model
   if (!is.null(partial_model)) {
@@ -148,14 +148,14 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
     }
     
     Xp <- partial_model$xp
-    vvs <- seq(pvar+1, nvar)
+    ccs <- seq(pvar+1, nvar)
   }
   
-  for (vv in vvs) {
+  for (cc in ccs) {
     obj_opt <- -Inf
     for (rr in seq(nrestart)) {
       
-      res <- mcc_inner(X, Xp, dx, predict, vv, iter_tol, iter_max, verbosity)               
+      res <- mcc_inner(X, Xp, dx, predict, cc, iter_tol, iter_max, verbosity)               
       
       # keep solution with maximum objective
       if (res$obj > obj_opt) {
@@ -164,16 +164,28 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
         XpW <- res$XpW
       }
       if (verbosity > 0) {
-        print(paste("canonical variable ", vv, ": ",
+        print(paste("canonical variable ", cc, ": ",
                     "maximum objective is ", format(obj_opt, digits = 4),
                     " at random restart ", rr-1, sep = ""))
       }
     }
     
-    corr[ , , vv] <- cor(XpW, XpW)  
+    corr[ , , cc] <- cor(XpW, XpW)  
+    
+    # early stopping at previous component due to correlation threshold
+    sum_corr_pp <- sum(corr[ , , cc] - diag(m))/2
+    sum_corr_1 <- sum(corr[ , , 1] - diag(m))/2
+    if (!is.null(cor_tol) && sum_corr_pp < cor_tol*sum_corr_1) {
+        corr <- corr[ , , 1:(cc-1), drop=FALSE]
+        for (mm in 1:m) {
+            W[[mm]] <- W[[mm]][ , 1:(cc-1), drop=FALSE]  
+        }
+        break
+    }    
+    
     for (mm in 1:m) {
       w <- w_opt[[mm]]
-      W[[mm]][ , vv] <- w
+      W[[mm]][ , cc] <- w
       
       # deflate data matrix
       q <- t(Xp[[mm]])%*%(X[[mm]]%*%w)
@@ -181,28 +193,18 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
       Xp[[mm]] <- Xp[[mm]] - Xp[[mm]]%*%q%*%t(q) 
     }
     
-    # current additionally explained correlation is below threshold cor_tol
-    sum_corr_pp <- sum(corr[ , , vv] - diag(m))/2
-    sum_corr_1 <- sum(corr[ , , 1] - diag(m))/2
-    if (!is.null(cor_tol) && sum_corr_pp < cor_tol*sum_corr_1) {
-      corr <- corr[ , , 1:(vv-1), drop=FALSE]
-      for (mm in 1:m) {
-        W[[mm]] <- W[[mm]][ , 1:(vv-1), drop=FALSE]  
-      }
-      break
-    }    
-    # at least one data matrix is fully deflated
+    # early stopping at current component due to fully deflated data matrix
     deflated <- logical(m)
     for (mm in 1:m) {
       deflated[mm] <- all(abs(Xp[[mm]]) < 1e-14)
     }
-    if (vv < nvar && any(deflated)) { 
+    if (cc < nvar && any(deflated)) { 
       if (verbosity > 0) {
         print("at least one data matrix is fully deflated, less than 'nvar' pairs of variables could be computed")            
       }
-      corr <- corr[ , , 1:vv, drop=FALSE]
+      corr <- corr[ , , 1:cc, drop=FALSE]
       for (mm in 1:m) {
-        W[[mm]] <- W[[mm]][ , 1:vv, drop=FALSE]  
+        W[[mm]] <- W[[mm]][ , 1:cc, drop=FALSE]  
       }
       break
     }
@@ -213,7 +215,7 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = NULL, predict,
   return(mcc)
 }
 
-mcc_inner <- function(X, Xp, dx, predict, vv, iter_tol, iter_max, verbosity) {
+mcc_inner <- function(X, Xp, dx, predict, cc, iter_tol, iter_max, verbosity) {
   
   m <- length(X)  # number of domains
   n <- nrow(X[[1]])  # number of observations
@@ -223,7 +225,7 @@ mcc_inner <- function(X, Xp, dx, predict, vv, iter_tol, iter_max, verbosity) {
   w <- list()
   for (mm in 1:m) {
     v <- rnorm(dx[mm]);  
-    if (all(predict[[mm]](Xp[[mm]], Xp[[mm]][ , 1], vv) >= 0)) {
+    if (all(predict[[mm]](Xp[[mm]], Xp[[mm]][ , 1], cc) >= 0)) {
       v <- abs(v)
     }
     w[[mm]] <- v/normv(Xp[[mm]]%*%v)   
@@ -244,7 +246,7 @@ mcc_inner <- function(X, Xp, dx, predict, vv, iter_tol, iter_max, verbosity) {
     obj_old <- obj
     
     for (mm in 1:m) {
-      v <- predict[[mm]](Xp[[mm]], rowSums(XpW[ , -mm, drop=FALSE]), vv)  
+      v <- predict[[mm]](Xp[[mm]], rowSums(XpW[ , -mm, drop=FALSE]), cc)  
       if (all(v == 0))
         stop("w collapsed to the zero vector, try relaxing the constraints")
       
