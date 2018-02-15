@@ -1,4 +1,4 @@
-#  Copyright 2013 Christian Sigg
+#  Copyright 2013, 2018 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,9 +13,6 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-library(testthat)
-library(MASS)
-library(glmnet)
-library(nscancor)
-
-test_check("nscancor")
+if (require(testthat) && require(glmnet) && require(MASS) && require(nscancor)) {
+  test_check("nscancor")
+}
