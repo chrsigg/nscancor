@@ -1,27 +1,28 @@
 Package: nscancor
 Authors@R: c( person("Christian", "Sigg", email =
-    "christian@sigg-iten.ch", role = c("aut", "cre")), person("R
-    Core team", role = "aut"))
-Version: 0.6
-Date: 2014-02-03
+        "christian@sigg-iten.ch", role = c("aut", "cre"), comment =
+        c(ORCID = "0000-0003-1067-9224")), person("R Core team", role =
+        "ctb", comment = "cancor interface and documentation"))
+Version: 0.6.1-25
 Title: Non-Negative and Sparse CCA
-Description: This package implements two algorithms for canonical correlation
-    analysis (CCA) that are based on iterated regression
-    steps. By choosing the appropriate regression algorithm for each data
-    modality, it is possible to enforce sparsity, non-negativity or other kinds
-    of constraints on the projection vectors. Multiple canonical variables are
-    computed sequentially using a generalized deflation scheme, where the
-    additional correlation not explained by previous variables is maximized.
-    'nscancor' is used to analyze paired data from two domains, and has the same
-    interface as the 'cancor' function from the 'stats' package (plus some extra
-    parameters). 'mcancor' is appropriate for analyzing data from three or more
-    domains.
+Description: Two implementations of canonical correlation analysis
+        (CCA) that are based on iterated regression. By choosing the
+        appropriate regression algorithm for each data domain, it is
+        possible to enforce sparsity, non-negativity or other kinds of
+        constraints on the projection vectors. Multiple canonical
+        variables are computed sequentially using a generalized
+        deflation scheme, where the additional correlation not
+        explained by previous variables is maximized. 'nscancor' is
+        used to analyze paired data from two domains, and has the same
+        interface as the 'cancor' function from the 'stats' package
+        (plus some extra parameters). 'mcancor' is appropriate for
+        analyzing data from three or more domains. See
+        <http://sigg-iten.ch/learningbits/2014/01/20/canonical-correlation-analysis-under-constraints/>
+        and Sigg et al. (2007) <doi:10.1109/MLSP.2007.4414315> for more
+        details.
 URL: http://sigg-iten.ch/research/
+BugReports: https://github.com/chrsigg/nscancor/issues
 License: GPL (>=2)
-Suggests:
-    CCA,
-    glmnet,
-    MASS,
-    PMA,
-    testthat (>= 0.8),
-    roxygen2
+Imports: stats
+Suggests: CCA, glmnet, MASS, PMA, roxygen2, testthat (>= 0.8)
+RoxygenNote: 6.0.1
