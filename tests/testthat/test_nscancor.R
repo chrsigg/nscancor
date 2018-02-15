@@ -17,18 +17,17 @@ context("nscancor")
 
 test_that("cancor equivalence", {
     set.seed(1)
-    d <- 5
-    n <- 10
+    d <- 3
+    n <- 9
     X <- matrix(rnorm(n*d), n)
     Y <- matrix(rnorm(n*d), n)
-    
+
     cc <- cancor(X, Y)
     xpredict = function(Y, x, cc) {
       return(ginv(Y)%*%x)
-    } 
-    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, 
-                     iter_tol=1e-10, iter_max=500)
-    
+    }
+    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
+
     expect_true(normv(cc$cor - nscc$cor) < 1e-3)
     expect_true(norm(abs(cc$xcoef) - abs(nscc$xcoef), "F") < 1e-3)
     expect_true(norm(abs(cc$ycoef) - abs(nscc$ycoef), "F") < 1e-3)
@@ -42,25 +41,25 @@ test_that("corr tolerance early stopping", {
     n <- 10
     X <- matrix(rnorm(n*d), n)
     Y <- matrix(rnorm(n*d), n)
-    
+
     xpredict = function(Y, x, cc) {
       return(ginv(Y)%*%x)
-    } 
+    }
     nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, cor_tol=0.3)
     ncomp <- length(nscc$cor)
-    
+
     expect_true(nscc$cor[ncomp]/nscc$cor[1] >= 0.3)
     expect_true(ncol(nscc$xcoef) == ncomp)
     expect_true(ncol(nscc$ycoef) == ncomp)
 })
- 
+
 test_that("rank of matrix smaller than nvar", {
     a <- 1:5
     X <- a %o% a
-    
+
     xpredict = function(Y, x, cc) {
       return(ginv(Y)%*%x)
-    } 
+    }
     nscc <- nscancor(X, X, xpredict=xpredict, ypredict=xpredict, nvar = 2)
     expect_true(length(nscc$cor) == 1)
     expect_true(ncol(nscc$xcoef) == 1)
@@ -73,17 +72,17 @@ test_that("sequential variable computation", {
   n <- 10
   X <- matrix(rnorm(n*d), n)
   Y <- matrix(rnorm(n*d), n)
-  
+
   cc <- cancor(X, Y)
   xpredict = function(Y, x, cc) {
     return(ginv(Y)%*%x)
-  } 
+  }
   nscc <- NULL
   for (pp in seq_along(cc$cor)) {
     nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nvar=pp,
                      iter_tol=1e-10, iter_max=500, partial_model=nscc)
   }
-  
+
   expect_true(normv(cc$cor - nscc$cor) < 1e-3)
   expect_true(norm(abs(cc$xcoef) - abs(nscc$xcoef), "F") < 1e-3)
   expect_true(norm(abs(cc$ycoef) - abs(nscc$ycoef), "F") < 1e-3)

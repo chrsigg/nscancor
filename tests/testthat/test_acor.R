@@ -1,4 +1,4 @@
-#  Copyright 2013 Christian Sigg
+#  Copyright 2013, 2018 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,12 +17,12 @@ context("additional correlation")
 
 test_that("cancor correlation equivalence", {
     set.seed(1)
-    
+
     equiv <- function (n,d) {
       X <- matrix(runif(n*d), n)
       Y <- matrix(runif(n*d), n)
       cc <- cancor(X, Y)
-      expect_equal(acor(X, cc$xcoef, Y, cc$ycoef)$cor, cc$cor)  
+      expect_equal(acor(X, cc$xcoef, Y, cc$ycoef)$cor, cc$cor)
     }
     equiv(20, 5)
     equiv(10, 9)
@@ -30,18 +30,19 @@ test_that("cancor correlation equivalence", {
 
 test_that("sparse CCA equivalence", {
   set.seed(1)
-  
+
   equiv <- function (n,d) {
     X <- matrix(runif(n*d), n)
     Y <- matrix(runif(n*d), n)
     xpredict <- function(Y, x, cc) {
-      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=2)
+      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=3)
       V <- coef(en)
       return(V[2:nrow(V), ncol(V)])
     }
-    scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
+    scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nrestart = 1,
+                    iter_max = 2)
     sacc <- acor(X, scc$xcoef, Y, scc$ycoef)
-    expect_equal(sacc$cor, scc$cor)  
+    expect_equal(sacc$cor, scc$cor)
     expect_equal(sacc$xcoef, scc$xcoef)
     expect_equal(sacc$ycoef, scc$ycoef)
     expect_equal(sacc$xcenter, scc$xcenter)
@@ -58,17 +59,18 @@ test_that("sparse CCA equivalence", {
 
 test_that("non-negative sparse CCA correlation equivalence", {
   set.seed(1)
-  
+
   equiv <- function (n,d) {
     X <- matrix(runif(n*d), n)
     Y <- matrix(runif(n*d), n)
     xpredict <- function(Y, x, cc) {
-      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=2, lower.limits=0)
+      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
       V <- coef(en)
       return(V[2:nrow(V), ncol(V)])
     }
-    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict)
-    expect_equal(acor(X, nscc$xcoef, Y, nscc$ycoef)$cor, nscc$cor)  
+    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nrestart = 1,
+                     iter_max = 2)
+    expect_equal(acor(X, nscc$xcoef, Y, nscc$ycoef)$cor, nscc$cor)
   }
   equiv(10, 5)
   equiv(10, 10)
