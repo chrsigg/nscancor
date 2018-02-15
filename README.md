@@ -43,7 +43,7 @@ non-negativity of the projection weights is useful for analysing data
 where only positive influence of features is deemed appropriate. The
 algorithm executes iterated regression steps, and the constraints
 enter via the regression functions. `nscancor` is therefore modular,
-and builds on the great number of regression methods that are
+and builds on the many regression methods that are
 available, e.g. ridge regression or the elastic net. By using two
 different regression functions, the proper constraints can be enforced
 for each domain.
@@ -55,7 +55,6 @@ pairwise correlations of canonical variables. As with `nscancor`,
 specifying the regression function for each domain makes it possible
 to enforce appropriate constraints on each canonical vector.
 
-This [blog
+[This blog
 post](http://sigg-iten.ch/learningbits/2014/01/20/canonical-correlation-analysis-under-constraints/)
 explains how to use the package and demonstrates its benefits.
-
