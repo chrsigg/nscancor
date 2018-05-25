@@ -56,5 +56,5 @@ specifying the regression function for each domain makes it possible
 to enforce appropriate constraints on each canonical vector.
 
 [This blog
-post](http://sigg-iten.ch/learningbits/2014/01/20/canonical-correlation-analysis-under-constraints/)
+post](https://sigg-iten.ch/learningbits/2014/01/20/canonical-correlation-analysis-under-constraints/)
 explains how to use the package and demonstrates its benefits.

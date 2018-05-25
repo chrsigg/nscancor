@@ -3,7 +3,7 @@ Authors@R: c( person("Christian", "Sigg", email =
         "christian@sigg-iten.ch", role = c("aut", "cre"), comment =
         c(ORCID = "0000-0003-1067-9224")), person("R Core team", role =
         "ctb", comment = "cancor interface and documentation"))
-Version: 0.6.1-25
+Version: 0.6.2
 Title: Non-Negative and Sparse CCA
 Description: Two implementations of canonical correlation analysis
         (CCA) that are based on iterated regression. By choosing the
@@ -17,10 +17,10 @@ Description: Two implementations of canonical correlation analysis
         interface as the 'cancor' function from the 'stats' package
         (plus some extra parameters). 'mcancor' is appropriate for
         analyzing data from three or more domains. See
-        <http://sigg-iten.ch/learningbits/2014/01/20/canonical-correlation-analysis-under-constraints/>
+        <https://sigg-iten.ch/learningbits/2014/01/20/canonical-correlation-analysis-under-constraints/>
         and Sigg et al. (2007) <doi:10.1109/MLSP.2007.4414315> for more
         details.
-URL: http://sigg-iten.ch/research/
+URL: https://sigg-iten.ch/research/
 BugReports: https://github.com/chrsigg/nscancor/issues
 License: GPL (>=2)
 Imports: stats
