@@ -1,6 +1,6 @@
 \donttest{
 if (requireNamespace("glmnet", quietly = TRUE) &&
-    requireNamespace("PMA", quietly = TRUE)) {
+    requireNamespace("PMA", quietly = TRUE)) withAutoprint({
 
   data(breastdata, package="PMA")
 
@@ -30,5 +30,7 @@ if (requireNamespace("glmnet", quietly = TRUE) &&
 
   # Compute another canonical variable for each domain
   mcc <- mcancor(x, predict = predict, nvar = 3, partial_model = mcc)
-}
+  mcc$cor
+  mcc$coef
+})
 }

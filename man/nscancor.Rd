@@ -116,7 +116,7 @@ See the references for further details.
 \donttest{
 if (requireNamespace("glmnet", quietly = TRUE) &&
     requireNamespace("MASS", quietly = TRUE) &&
-    requireNamespace("CCA", quietly = TRUE)) {
+    requireNamespace("CCA", quietly = TRUE)) withAutoprint({
 
   data(nutrimouse, package = "CCA")
 
@@ -162,7 +162,10 @@ if (requireNamespace("glmnet", quietly = TRUE) &&
   nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar = 3,
                    xpredict = xpredict, ypredict = ypredict,
                    partial_model = nscc)
-}
+  nscc$cor
+  nscc$xcoef
+  nscc$ycoef
+})
 }
 }
 \references{

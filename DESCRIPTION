@@ -3,7 +3,7 @@ Authors@R: c( person("Christian", "Sigg", email =
         "christian@sigg-iten.ch", role = c("aut", "cre"), comment =
         c(ORCID = "0000-0003-1067-9224")), person("R Core team", role =
         "ctb", comment = "cancor interface and documentation"))
-Version: 0.6.2
+Version: 0.6.2-1
 Title: Non-Negative and Sparse CCA
 Description: Two implementations of canonical correlation analysis
         (CCA) that are based on iterated regression. By choosing the
@@ -23,6 +23,7 @@ Description: Two implementations of canonical correlation analysis
 URL: https://sigg-iten.ch/research/
 BugReports: https://github.com/chrsigg/nscancor/issues
 License: GPL (>=2)
+Depends: R (>= 3.4.0)
 Imports: stats
 Suggests: CCA, glmnet, MASS, PMA, roxygen2, testthat (>= 0.8)
 RoxygenNote: 6.0.1
