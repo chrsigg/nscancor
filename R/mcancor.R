@@ -1,4 +1,4 @@
-#  Copyright 2013, 2018 Christian Sigg
+#  Copyright 2013, 2018, 2023 Christian Sigg
 #  Copyright 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -134,7 +134,7 @@ mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = min(sapply(x, dim)
 
   # start from partially completed model
   if (!is.null(partial_model)) {
-    if (class(partial_model) != "mcancor") {
+    if (!is(partial_model, "mcancor")) {
       stop("argument 'partial_model' must be of class \"mcancor\"")
     }
 

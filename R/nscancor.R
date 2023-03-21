@@ -1,4 +1,4 @@
-#  Copyright 2013, 2018 Christian Sigg
+#  Copyright 2013, 2018, 2023 Christian Sigg
 #  Copyright 1995-2013 The R Core Team
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 #'
 #' \code{nscancor} computes the canonical vectors (called \code{xcoef} and
 #' \code{ycoef}) using iterated regression steps, where the constraints suitable
-#' for each domain are enforced by choosing the avvropriate regression method.
+#' for each domain are enforced by choosing the appropriate regression method.
 #' See Sigg et al. (2007) for an early application of the principle (not yet
 #' including generalized deflation).
 #'
@@ -147,7 +147,7 @@ nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE,
 
     # start from partially completed model
     if (!is.null(partial_model)) {
-      if (class(partial_model) != "nscancor") {
+      if (!is(partial_model, "nscancor")) {
         stop("argument 'partial_model' must be of class \"nscancor\"")
       }
 
