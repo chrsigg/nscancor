@@ -14,5 +14,6 @@
 #  http://www.r-project.org/Licenses/
 
 #' @docType package
+#' @importFrom methods is
 #' @importFrom stats cor rnorm
 NULL
