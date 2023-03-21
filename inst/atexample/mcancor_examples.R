@@ -8,8 +8,9 @@ if (requireNamespace("glmnet", quietly = TRUE) &&
 
   # Three data domains: a subset of genes, and CGH spots for the first and
   # second chromosome
-  x <- with(breastdata,
-            list(t(rna)[ , 1:100], t(dna)[ , chrom == 1], t(dna)[ , chrom == 2])
+  x <- with(
+    breastdata,
+    list(t(rna)[ , 1:100], t(dna)[ , chrom == 1], t(dna)[ , chrom == 2])
   )
 
   # Sparse regression functions with different cardinalities for different domains
