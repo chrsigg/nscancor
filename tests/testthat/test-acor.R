@@ -1,4 +1,4 @@
-#  Copyright 2013, 2018 Christian Sigg
+#  Copyright 2013, 2018, 2023 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -13,8 +13,6 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-context("multi-domain additional correlation")
-
 test_that("cancor correlation equivalence", {
     set.seed(1)
 
@@ -22,13 +20,13 @@ test_that("cancor correlation equivalence", {
       X <- matrix(runif(n*d), n)
       Y <- matrix(runif(n*d), n)
       cc <- cancor(X, Y)
-      expect_equal(macor(list(X, Y), list(cc$xcoef, cc$ycoef))$cor[1, 2, ], cc$cor)
+      expect_equal(acor(X, cc$xcoef, Y, cc$ycoef)$cor, cc$cor)
     }
     equiv(20, 5)
     equiv(10, 9)
 })
 
-test_that("sparse CCA correlation equivalence", {
+test_that("sparse CCA equivalence", {
   set.seed(1)
 
   equiv <- function (n,d) {
@@ -39,33 +37,38 @@ test_that("sparse CCA correlation equivalence", {
       V <- coef(en)
       return(V[2:nrow(V), ncol(V)])
     }
-    scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nvar=2,
-                    nrestart = 1, iter_max = 2)
-    expect_equal(macor(list(X, Y), list(scc$xcoef, scc$ycoef))$cor[1, 2, ], scc$cor)
+    scc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nrestart = 1,
+                    iter_max = 2)
+    sacc <- acor(X, scc$xcoef, Y, scc$ycoef)
+    expect_equal(sacc$cor, scc$cor)
+    expect_equal(sacc$xcoef, scc$xcoef)
+    expect_equal(sacc$ycoef, scc$ycoef)
+    expect_equal(sacc$xcenter, scc$xcenter)
+    expect_equal(sacc$xscale, scc$xscale)
+    expect_equal(sacc$ycenter, scc$ycenter)
+    expect_equal(sacc$yscale, scc$yscale)
+    expect_equal(sacc$xp, scc$xp)
+    expect_equal(sacc$yp, scc$yp)
   }
   equiv(10, 5)
   equiv(10, 10)
   equiv(5, 10)
 })
 
-test_that("sparse mCCA equivalence", {
+test_that("non-negative sparse CCA correlation equivalence", {
   set.seed(1)
 
   equiv <- function (n,d) {
-    X <- list(matrix(runif(n*d), n), matrix(runif(n*d), n), matrix(runif(n*d), n))
-    pred <- function(Y, x, cc) {
-      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=3)
+    X <- matrix(runif(n*d), n)
+    Y <- matrix(runif(n*d), n)
+    xpredict <- function(Y, x, cc) {
+      en <- glmnet(Y, x, alpha=0.5, intercept=FALSE, dfmax=3, lower.limits=0)
       V <- coef(en)
       return(V[2:nrow(V), ncol(V)])
     }
-    predict <- list(pred, pred, pred)
-    mcc <- mcancor(X, predict=predict, nvar=2, nrestart = 1, iter_max = 2)
-    macc <- macor(X, mcc$coef)
-    expect_equal(macc$cor, mcc$cor)
-    expect_equal(macc$coef, mcc$coef)
-    expect_equal(macc$center, mcc$center)
-    expect_equal(macc$scale, mcc$scale)
-    expect_equal(macc$xp, mcc$xp)
+    nscc <- nscancor(X, Y, xpredict=xpredict, ypredict=xpredict, nrestart = 1,
+                     iter_max = 2)
+    expect_equal(acor(X, nscc$xcoef, Y, nscc$ycoef)$cor, nscc$cor)
   }
   equiv(10, 5)
   equiv(10, 10)

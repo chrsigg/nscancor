@@ -1,4 +1,4 @@
-#  Copyright 2013, 2018 Christian Sigg
+#  Copyright 2013, 2018, 2023 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -12,8 +12,6 @@
 #
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
-
-context("mcancor")
 
 test_that("cancor equivalence", {
     set.seed(1)
