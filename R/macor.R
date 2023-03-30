@@ -1,4 +1,4 @@
-#  Copyright 2013, 2018 Christian Sigg
+#  Copyright 2013, 2018, 2023 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #' domains.
 #'
 #' @export
+#'
 #' @param x a list of numeric matrices which contain the data from the different
 #'   domains
 #' @param coef a list of matrices containing the canonical vectors related to
@@ -36,7 +37,8 @@
 #'   vector specifies the standard deviations used to rescale the columns of the
 #'   corresponding data matrix. Each list element is passed to
 #'   \code{\link{scale}}.
-#' @return \code{macor} returns a list of class \code{mcancor} with the
+#'
+#' @return A list of class \code{mcancor} with the
 #'   following elements: \item{cor}{a multi-dimensional array containing the
 #'   additional correlations explained by each pair of canonical variables. The
 #'   first two dimensions correspond to the domains, and the third dimension
@@ -45,6 +47,9 @@
 #'   empirical means used to center the data matrices} \item{scale}{the list of
 #'   empirical standard deviations used to scale the data matrices}\item{xp}{the
 #'   list of deflated data matrices corresponding to \code{x}}
+#'
+#' @example inst/atexample/macor_examples.R
+#'
 macor <- function(x, coef, center = TRUE, scale_ = FALSE) {
 
   X <- x

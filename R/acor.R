@@ -1,4 +1,4 @@
-#  Copyright 2013, 2018 Christian Sigg
+#  Copyright 2013, 2018, 2023 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #'   \emph{Advances in Neural Information Processing Systems} (pp. 1017--1024).
 #'
 #' @export
+#'
 #' @param x a numeric matrix which provides the data from the first domain
 #' @param xcoef a numeric data matrix with the canonical vectors related to
 #'   \code{x} as its columns.
@@ -52,12 +53,15 @@
 #'   supplied. The value is passed to \code{\link{scale}}.
 #' @param yscale analogous to \code{xscale}
 #'
-#' @return \code{acor} returns a list of class \code{nscancor} containing the
+#' @returns A list of class \code{nscancor} containing the
 #'   following elements: \item{cor}{the additional correlation explained by each
 #'   pair of canonical variables} \item{xcoef}{copied from the
 #'   input arguments}  \item{ycoef, ycenter, yscale}{copied from the input
 #'   arguments} \item{xp}{the deflated data matrix corresponding to \code{x}}
-#'   \item{yp}{anologous to \code{xp}}
+#'   \item{yp}{analogous to \code{xp}}
+#'
+#' @example inst/atexample/acor_examples.R
+#'
 acor <- function(x, xcoef, y, ycoef, xcenter = TRUE, ycenter = TRUE,
                  xscale = FALSE, yscale = FALSE) {
 
