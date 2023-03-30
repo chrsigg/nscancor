@@ -39,7 +39,7 @@ both aforementioned problems. Enforcing a bound on the Euclidean norm
 (also called the L2 norm) of the projections avoids trivial
 correlations. Enforcing a bound on the L1 norm leads to sparse
 solutions, where many of the weights are exactly zero. And enforcing
-non-negativity of the projection weights is useful for analysing data
+non-negativity of the projection weights is useful for analyzing data
 where only positive influence of features is deemed appropriate. The
 algorithm executes iterated regression steps, and the constraints
 enter via the regression functions. `nscancor` is therefore modular,
