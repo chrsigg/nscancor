@@ -1,9 +1,9 @@
 Package: nscancor
 Authors@R: c( person("Christian", "Sigg", email =
-        "christian@sigg-iten.ch", role = c("aut", "cre"), comment =
-        c(ORCID = "0000-0003-1067-9224")), person("R Core team", role =
-        "ctb", comment = "cancor interface and documentation"))
-Version: 0.6.2-1
+        "christian@sigg-iten.ch", role = c("aut", "cph", "cre"),
+        comment = c(ORCID = "0000-0003-1067-9224")), person("R Core
+        team", role = c("cph", "ctb"), comment = "cancor() interface
+        and documentation"))
 Title: Non-Negative and Sparse CCA
 Description: Two implementations of canonical correlation analysis
         (CCA) that are based on iterated regression. By choosing the
