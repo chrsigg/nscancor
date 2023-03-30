@@ -1,4 +1,4 @@
-#  Copyright 2013, 2014, 2018 Christian Sigg
+#  Copyright 2013, 2014, 2018, 2023 Christian Sigg
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -15,11 +15,20 @@
 
 #' Cardinality of Column Vectors
 #'
-#' Computes the cardinality (the sum of non-zero elements) of each column of
+#' Computes the cardinality (the number of non-zero elements) of each column of
 #' the matrix \eqn{\mathbf{w}}{w}.
 #'
 #' @export
+#'
 #' @param w a numeric matrix, e.g. \code{xcoef} as returned by \code{\link{nscancor}}
-cardinality <- function(w) {
-    return(colSums(abs(as.matrix(w)) > 0))
+#'
+#' @returns A vector containing the number of non-zero elements of each column of \code{w}
+#'
+#' @examples
+#' # returns c(2, 1)
+#' colCardinalities(matrix(c(1, 0, 2, -1, 0, 0), ncol = 2))
+#'
+#'
+colCardinalities <- function(w) {
+  return(colSums(abs(as.matrix(w)) > 0))
 }
