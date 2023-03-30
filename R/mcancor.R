@@ -26,6 +26,7 @@
 #' the sum of all pairwise correlations of the canonical variables.
 #'
 #' @export
+#'
 #' @param x a list of numeric matrices which contain the data from the different
 #'   domains
 #' @param center a list of logical values indicating whether the empirical mean
@@ -61,7 +62,7 @@
 #'   explained correlation over all random restarts is kept. A value greater
 #'   than one can help to avoid poor local maxima.
 #' @param iter_tol If the relative change of the objective is less than
-#'   \code{iter_tol} between iterations, the procedure is asssumed to have
+#'   \code{iter_tol} between iterations, the procedure is assumed to have
 #'   converged to a local optimum.
 #' @param iter_max the maximum number of iterations to be performed. The
 #'   procedure is terminated if either the \code{iter_tol} or the
@@ -90,6 +91,7 @@
 #' @seealso  \code{\link{macor}}, \code{\link{nscancor}}, \code{\link{scale}}
 #'
 #' @example inst/atexample/mcancor_examples.R
+#'
 mcancor <- function (x, center = TRUE, scale_ = FALSE, nvar = min(sapply(x, dim)),
                      predict, cor_tol = NULL, nrestart = 10, iter_tol = 0,
                      iter_max = 50, partial_model = NULL, verbosity = 0) {

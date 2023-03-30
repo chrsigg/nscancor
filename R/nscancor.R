@@ -44,6 +44,7 @@
 #' See the references for further details.
 #'
 #' @export nscancor
+#'
 #' @param x a numeric matrix which provides the data from the first domain
 #' @param y a numeric matrix which provides the data from the second domain
 #' @param xcenter a logical value indicating whether the empirical mean of (each
@@ -77,7 +78,7 @@
 #'   explained correlation over all random restarts is kept. A value greater
 #'   than one can help to avoid poor local maxima.
 #' @param iter_tol If the relative change of the objective is less than
-#'   \code{iter_tol} between iterations, the procedure is asssumed to have
+#'   \code{iter_tol} between iterations, the procedure is assumed to have
 #'   converged to a local optimum.
 #' @param iter_max the maximum number of iterations to be performed. The
 #'   procedure is terminated if either the \code{iter_tol} or the
@@ -91,7 +92,7 @@
 #' @param verbosity an integer specifying the verbosity level. Greater values
 #'   result in more output, the default is to be quiet.
 #'
-#' @return \code{nscancor} returns a list of class \code{nscancor} containing
+#' @return A list of class \code{nscancor} containing
 #'   the following elements: \item{cor}{the additional correlation explained by
 #'   each pair of canonical variables, see \code{\link{acor}}.} \item{xcoef}{the
 #'   matrix containing the canonical vectors related to \code{x} as its columns}
@@ -100,18 +101,19 @@
 #'   \code{cancor})} \item{ycenter}{analogous to \code{xcenter}}
 #'   \item{xscale}{if \code{xscale} is \code{TRUE} the scaling vector, else
 #'   FALSE } \item{yscale}{analogous to \code{xscale}} \item{xp}{the deflated
-#'   data matrix corresponding to \code{x}} \item{yp}{anologous to \code{xp}}
+#'   data matrix corresponding to \code{x}} \item{yp}{analogous to \code{xp}}
 #'
 #' @references Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and Buhmann,
 #'   J. (2007) Nonnegative CCA for Audiovisual Source Separation. In
 #'   \emph{Proceedings of the 2007 IEEE Workshop on Machine Learning for Signal
-#'   Processing} (vv. 253--258).
+#'   Processing} (pp. 253--258).
 #' @references Mackey, L. (2009) Deflation Methods for Sparse PCA. In
-#'   \emph{Advances in Neural Information Processing Systems} (vv. 1017--1024).
+#'   \emph{Advances in Neural Information Processing Systems} (pp. 1017--1024).
 #'
 #' @seealso  \code{\link{acor}}, \code{\link{cancor}}, \code{\link{scale}}
 #'
 #' @example inst/atexample/nscancor_examples.R
+#'
 nscancor <- function(x, y, xcenter = TRUE, ycenter = TRUE,
                      xscale = FALSE, yscale = FALSE, nvar = min(dim(x), dim(y)),
                      xpredict, ypredict,
