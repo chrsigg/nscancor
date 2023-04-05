@@ -4,10 +4,23 @@
 \alias{nscancor}
 \title{Non-Negative and Sparse CCA}
 \usage{
-nscancor(x, y, xcenter = TRUE, ycenter = TRUE, xscale = FALSE,
-  yscale = FALSE, nvar = min(dim(x), dim(y)), xpredict, ypredict,
-  cor_tol = NULL, nrestart = 10, iter_tol = 0, iter_max = 50,
-  partial_model = NULL, verbosity = 0)
+nscancor(
+  x,
+  y,
+  xcenter = TRUE,
+  ycenter = TRUE,
+  xscale = FALSE,
+  yscale = FALSE,
+  nvar = min(dim(x), dim(y)),
+  xpredict,
+  ypredict,
+  cor_tol = NULL,
+  nrestart = 10,
+  iter_tol = 0,
+  iter_max = 50,
+  partial_model = NULL,
+  verbosity = 0
+)
 }
 \arguments{
 \item{x}{a numeric matrix which provides the data from the first domain}
@@ -54,7 +67,7 @@ explained correlation over all random restarts is kept. A value greater
 than one can help to avoid poor local maxima.}
 
 \item{iter_tol}{If the relative change of the objective is less than
-\code{iter_tol} between iterations, the procedure is asssumed to have
+\code{iter_tol} between iterations, the procedure is assumed to have
 converged to a local optimum.}
 
 \item{iter_max}{the maximum number of iterations to be performed. The
@@ -72,7 +85,7 @@ examples for an illustration.}
 result in more output, the default is to be quiet.}
 }
 \value{
-\code{nscancor} returns a list of class \code{nscancor} containing
+A list of class \code{nscancor} containing
   the following elements: \item{cor}{the additional correlation explained by
   each pair of canonical variables, see \code{\link{acor}}.} \item{xcoef}{the
   matrix containing the canonical vectors related to \code{x} as its columns}
@@ -81,7 +94,7 @@ result in more output, the default is to be quiet.}
   \code{cancor})} \item{ycenter}{analogous to \code{xcenter}}
   \item{xscale}{if \code{xscale} is \code{TRUE} the scaling vector, else
   FALSE } \item{yscale}{analogous to \code{xscale}} \item{xp}{the deflated
-  data matrix corresponding to \code{x}} \item{yp}{anologous to \code{xp}}
+  data matrix corresponding to \code{x}} \item{yp}{analogous to \code{xp}}
 }
 \description{
 Performs a canonical correlation analysis (CCA) where constraints such as
@@ -92,7 +105,7 @@ contains a superset of the elements returned by \code{\link{cancor}}.
 \details{
 \code{nscancor} computes the canonical vectors (called \code{xcoef} and
 \code{ycoef}) using iterated regression steps, where the constraints suitable
-for each domain are enforced by choosing the avvropriate regression method.
+for each domain are enforced by choosing the appropriate regression method.
 See Sigg et al. (2007) for an early application of the principle (not yet
 including generalized deflation).
 
@@ -114,68 +127,67 @@ See the references for further details.
 }
 \examples{
 \donttest{
-if (requireNamespace("glmnet", quietly = TRUE) &&
-    requireNamespace("MASS", quietly = TRUE) &&
-    requireNamespace("CCA", quietly = TRUE)) withAutoprint({
+\dontshow{
+if (requireNamespace("CCA", quietly = TRUE) &&
+    requireNamespace("glmnet", quietly = TRUE) &&
+    requireNamespace("MASS", quietly = TRUE)) \{
+}
+data(nutrimouse, package = "CCA")
 
-  data(nutrimouse, package = "CCA")
+###
+# Unconstrained CCA, produces results close to calling
+# cancor(nutrimouse$gene[ , 1:5], nutrimouse$lipid)
 
-  set.seed(1)
+ypredict <- function(x, yc, cc) {
+  return(MASS::ginv(x)\%*\%yc)
+}
+xpredict <- function(y, xc, cc) {
+  return(MASS::ginv(y)\%*\%xc)
+}
+cc <- nscancor(nutrimouse$gene[ , 1:5], nutrimouse$lipid, xpredict = xpredict,
+               ypredict = ypredict)
+print(cc$cor)
 
-  ###
-  # Unconstrained CCA, produces results close to calling
-  # cancor(nutrimouse$gene[ , 1:5], nutrimouse$lipid)
+###
+# Non-negative sparse CCA using glmnet() as the regression function, where
+# different regularizers are enforced on the different data domains and pairs
+# of canonical variables.
 
-  ypredict <- function(x, yc, cc) {
-    return(MASS::ginv(x)\%*\%yc)
-  }
-  xpredict <- function(y, xc, cc) {
-    return(MASS::ginv(y)\%*\%xc)
-  }
-  nscancor(nutrimouse$gene[ , 1:5], nutrimouse$lipid, xpredict = xpredict,
-           ypredict = ypredict)
+dfmax_w <- c(40, 15, 10)
+ypredict <- function(x, yc, cc) {
+  en <- glmnet::glmnet(x, yc, alpha = 0.5, intercept = FALSE,
+                       dfmax = dfmax_w[cc], lower.limits = 0)
+  W <- coef(en)
+  return(W[2:nrow(W), ncol(W)])
+}
+dfmax_v <- c(7, 5, 5)
+xpredict <- function(y, xc, cc) {
+  en <- glmnet::glmnet(y, xc, alpha = 0.5, intercept = FALSE,
+                       dfmax = dfmax_v[cc])
+  V <- coef(en)
+  return(V[2:nrow(V), ncol(V)])
+}
+nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar = 2,
+                 xpredict = xpredict, ypredict = ypredict)
 
-
-  ###
-  # Non-negative sparse CCA using glmnet() as the regression function, where
-  # different regularisers are enforced on the different data domains and pairs
-  # of canonical variables.
-
-  dfmax_w <- c(40, 15, 10)
-  ypredict <- function(x, yc, cc) {
-    en <- glmnet::glmnet(x, yc, alpha = 0.5, intercept = FALSE,
-                         dfmax = dfmax_w[cc], lower.limits = 0)
-    W <- coef(en)
-    return(W[2:nrow(W), ncol(W)])
-  }
-  dfmax_v <- c(7, 5, 5)
-  xpredict <- function(y, xc, cc) {
-    en <- glmnet::glmnet(y, xc, alpha = 0.5, intercept = FALSE,
-                         dfmax = dfmax_v[cc])
-    V <- coef(en)
-    return(V[2:nrow(V), ncol(V)])
-  }
-  nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar = 2,
-                   xpredict = xpredict, ypredict = ypredict)
-
-  # continue the computation of canonical variables from a partial model
-  nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar = 3,
-                   xpredict = xpredict, ypredict = ypredict,
-                   partial_model = nscc)
-  nscc$cor
-  nscc$xcoef
-  nscc$ycoef
-})
+# continue the computation of canonical variables from a partial model
+nscc <- nscancor(nutrimouse$gene, nutrimouse$lipid, nvar = 3,
+                 xpredict = xpredict, ypredict = ypredict,
+                 partial_model = nscc)
+print(nscc$cor)
+print(nscc$xcoef)
+print(nscc$ycoef)
+\dontshow{\}}
 }
 }
 \references{
 Sigg, C. and Fischer, B. and Ommer, B. and Roth, V. and Buhmann,
   J. (2007) Nonnegative CCA for Audiovisual Source Separation. In
   \emph{Proceedings of the 2007 IEEE Workshop on Machine Learning for Signal
-  Processing} (vv. 253--258).
+  Processing} (pp. 253--258).
 
 Mackey, L. (2009) Deflation Methods for Sparse PCA. In
-  \emph{Advances in Neural Information Processing Systems} (vv. 1017--1024).
+  \emph{Advances in Neural Information Processing Systems} (pp. 1017--1024).
 }
 \seealso{
 \code{\link{acor}}, \code{\link{cancor}}, \code{\link{scale}}

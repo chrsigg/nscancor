@@ -4,9 +4,19 @@
 \alias{mcancor}
 \title{Non-Negative and Sparse Multi-Domain CCA}
 \usage{
-mcancor(x, center = TRUE, scale_ = FALSE, nvar = min(sapply(x, dim)),
-  predict, cor_tol = NULL, nrestart = 10, iter_tol = 0, iter_max = 50,
-  partial_model = NULL, verbosity = 0)
+mcancor(
+  x,
+  center = TRUE,
+  scale_ = FALSE,
+  nvar = min(sapply(x, dim)),
+  predict,
+  cor_tol = NULL,
+  nrestart = 10,
+  iter_tol = 0,
+  iter_max = 50,
+  partial_model = NULL,
+  verbosity = 0
+)
 }
 \arguments{
 \item{x}{a list of numeric matrices which contain the data from the different
@@ -51,7 +61,7 @@ explained correlation over all random restarts is kept. A value greater
 than one can help to avoid poor local maxima.}
 
 \item{iter_tol}{If the relative change of the objective is less than
-\code{iter_tol} between iterations, the procedure is asssumed to have
+\code{iter_tol} between iterations, the procedure is assumed to have
 converged to a local optimum.}
 
 \item{iter_max}{the maximum number of iterations to be performed. The
@@ -94,40 +104,54 @@ the sum of all pairwise correlations of the canonical variables.
 }
 \examples{
 \donttest{
-if (requireNamespace("glmnet", quietly = TRUE) &&
-    requireNamespace("PMA", quietly = TRUE)) withAutoprint({
+\dontshow{
+if (requireNamespace("glmnet", quietly = TRUE)) \{
+  tryCatch(\{
+}
+# As of version 1.2.1 of the PMA package, breastdata.rda is no longer
+# contained in the package and needs to be downloaded separately
+breastdata_url <- "https://statweb.stanford.edu/~tibs/PMA/breastdata.rda"
+breastdata_file <- tempfile("breastdata_", fileext = ".rda")
+status <- download.file(breastdata_url, breastdata_file, mode = "wb")
+if (status > 0)
+  stop("Unable to download from", breastdata_url)
+load(breastdata_file)
 
-  data(breastdata, package="PMA")
+# Three data domains: a subset of genes, and CGH spots for the first and
+# second chromosome
+x <- with(
+  breastdata,
+  list(t(rna)[ , 1:100], t(dna)[ , chrom == 1], t(dna)[ , chrom == 2])
+)
 
-  set.seed(1)
-
-  # Three data domains: a subset of genes, and CGH spots for the first and
-  # second chromosome
-  x <- with(breastdata,
-            list(t(rna)[ , 1:100], t(dna)[ , chrom == 1], t(dna)[ , chrom == 2])
+# Sparse regression functions with different cardinalities for different domains
+generate_predict <- function(dfmax) {
+  force(dfmax)
+  return(
+    function(x, sc, cc) {
+      en <- glmnet::glmnet(x, sc, alpha = 0.05, intercept = FALSE, dfmax = dfmax)
+      W <- coef(en)
+      return(W[2:nrow(W), ncol(W)])
+    }
   )
+}
+predict <- lapply(c(20, 10, 10), generate_predict)
 
-  # Sparse regression functions with different cardinalities for different domains
-  generate_predict <- function(dfmax) {
-    force(dfmax)
-    return(
-      function(x, sc, cc) {
-        en <- glmnet::glmnet(x, sc, alpha = 0.05, intercept = FALSE, dfmax = dfmax)
-        W <- coef(en)
-        return(W[2:nrow(W), ncol(W)])
-      }
-    )
-  }
-  predict <- lapply(c(20, 10, 10), generate_predict)
+# Compute two canonical variables per domain
+mcc <- mcancor(x, predict = predict, nvar = 2)
 
-  # Compute two canonical variables per domain
-  mcc <- mcancor(x, predict = predict, nvar = 2)
-
-  # Compute another canonical variable for each domain
-  mcc <- mcancor(x, predict = predict, nvar = 3, partial_model = mcc)
-  mcc$cor
-  mcc$coef
-})
+# Compute another canonical variable for each domain
+mcc <- mcancor(x, predict = predict, nvar = 3, partial_model = mcc)
+mcc$cor
+\dontshow{
+\}, warning = function(warn) \{
+  message(warn$message)
+\}, error = function(err) \{
+  message(err$message)
+\}, finally = \{
+  unlink(breastdata_file)
+\})
+\}}
 }
 }
 \seealso{

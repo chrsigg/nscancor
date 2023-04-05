@@ -4,8 +4,16 @@
 \alias{acor}
 \title{Additional Explained Correlation}
 \usage{
-acor(x, xcoef, y, ycoef, xcenter = TRUE, ycenter = TRUE, xscale = FALSE,
-  yscale = FALSE)
+acor(
+  x,
+  xcoef,
+  y,
+  ycoef,
+  xcenter = TRUE,
+  ycenter = TRUE,
+  xscale = FALSE,
+  yscale = FALSE
+)
 }
 \arguments{
 \item{x}{a numeric matrix which provides the data from the first domain}
@@ -34,12 +42,12 @@ supplied. The value is passed to \code{\link{scale}}.}
 \item{yscale}{analogous to \code{xscale}}
 }
 \value{
-\code{acor} returns a list of class \code{nscancor} containing the
+A list of class \code{nscancor} containing the
   following elements: \item{cor}{the additional correlation explained by each
   pair of canonical variables} \item{xcoef}{copied from the
   input arguments}  \item{ycoef, ycenter, yscale}{copied from the input
   arguments} \item{xp}{the deflated data matrix corresponding to \code{x}}
-  \item{yp}{anologous to \code{xp}}
+  \item{yp}{analogous to \code{xp}}
 }
 \description{
 \code{acor} computes the additional standard correlation explained by each
@@ -57,6 +65,24 @@ principal component analysis (PCA), which was adapted here to CCA.
 
 \code{acor} is also useful to build a partial CCA model, to be completed with
 additional canonical variables computed using \code{\link{nscancor}}.
+}
+\examples{
+\dontshow{
+if (requireNamespace("CCA", quietly = TRUE)) \{
+}
+data(nutrimouse, package = "CCA")
+
+x <- nutrimouse$gene[ , 1:5]
+y <- nutrimouse$lipid
+cc <- cancor(x, y)
+
+# Re-compute explained correlation
+ac <- acor(x, cc$xcoef, y, cc$ycoef)
+
+# Results should agree
+print(cc$cor)
+print(ac$cor)
+\dontshow{\}}
 }
 \references{
 Mackey, L. (2009) Deflation Methods for Sparse PCA. In
